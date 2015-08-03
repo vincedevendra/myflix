@@ -3,11 +3,10 @@ class SessionsController < ApplicationController
 
   def create
     user = User.find_by(email: params[:email])
-    if user
-      if user.authenticate(params[:password])
-        session[:current_user_id] = user.id
-        redirect_to root_path
-      end
+    if user && user.authenticate(params[:password])
+      session[:current_user_id] = user.id
+      flash[:success] = "You have successfully logged in."
+      redirect_to root_path
     else
       flash[:danger] = "Please check your username and password and try again."
       render 'new'
@@ -16,6 +15,7 @@ class SessionsController < ApplicationController
 
   def destroy
     session[:current_user_id] = nil
-    redirect_to splash_path
+    flash[:danger] = "You have signed out."
+    redirect_to welcome_path
   end
 end

@@ -14,6 +14,13 @@ class ApplicationController < ActionController::Base
   end
 
   def require_user
-    redirect_to splash_path unless logged_in?
+    unless logged_in?
+      flash[:danger] = "Please sign in or register."
+      redirect_to welcome_path
+    end
+  end
+
+  def redirect_when_logged_in
+    redirect_to root_path if logged_in?
   end
 end

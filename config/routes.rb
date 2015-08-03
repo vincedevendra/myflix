@@ -9,7 +9,7 @@ Myflix::Application.routes.draw do
 
   get '/register', to: 'users#new'
   
-  get '/splash', to: 'users#splash' 
+  get '/welcome', to: 'pages#welcome' 
   get '/category/:id', to: 'categories#show', as: 'category'
   
   resources :videos, only: [:index, :show] do
