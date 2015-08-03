@@ -3,9 +3,8 @@ Myflix::Application.routes.draw do
 
   root to: 'videos#index'
 
-  get '/login', to: 'sessions#new'
-  post '/login', to: 'sessions#create'
-  get '/logout', to: 'sessions#destroy'
+  get '/sign_in', to: 'sessions#new'
+  get '/sign_out', to: 'sessions#destroy'
 
   get '/register', to: 'users#new'
   
@@ -18,5 +17,6 @@ Myflix::Application.routes.draw do
     end
   end
 
-  resources :users, except: [:index, :destroy], path_names: {new: 'register'}
+  resources :users, only: :create
+  resources :sessions, only: :create
 end
