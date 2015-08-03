@@ -21,7 +21,9 @@ class ApplicationController < ActionController::Base
   end
 
   def redirect_when_logged_in
-    flash[:warning] = "You are already signed in."
-    redirect_to root_path if logged_in?
+    if logged_in?
+      flash[:warning] = "You are already signed in."
+      redirect_to root_path
+    end
   end
 end
