@@ -1,10 +1,8 @@
 class ReviewsController < ApplicationController
   def create
-    @review = Review.new(review_params)
-    @review.user = current_user
     @video = Video.find(params[:video_id])
-    @review.video = @video
-    
+    @review = Review.new(review_params.merge!(user: current_user, video: @video))
+        
     if @review.save
       flash[:success] = "Thank you for your review!"
       redirect_to :back
