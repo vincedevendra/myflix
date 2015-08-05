@@ -5,8 +5,7 @@ describe UsersController do
 
     it "sets @user to a new record when no signed in user" do
       get :new
-      expect(assigns(:user)).to be_instance_of(User)
-      expect(assigns(:user)).to be_new_record
+      expect(assigns(:user)).to be_a_new(User)
     end
 
     it "redirects to root_path for signed in user" do

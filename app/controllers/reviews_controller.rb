@@ -4,7 +4,7 @@ class ReviewsController < ApplicationController
     @review.user = current_user
     @video = Video.find(params[:video_id])
     @review.video = @video
-
+    
     if @review.save
       flash[:success] = "Thank you for your review!"
       redirect_to :back

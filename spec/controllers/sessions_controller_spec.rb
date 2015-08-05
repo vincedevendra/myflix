@@ -21,7 +21,7 @@ describe SessionsController do
       end
       
       it "sets :success message" do
-        expect(flash[:success]).not_to be_blank
+        expect(flash[:success]).to be_present
       end
 
       it "redirects to root_path" do
@@ -43,7 +43,7 @@ describe SessionsController do
       end
 
       it 'sets :danger message' do
-        expect(flash[:danger]).not_to be_blank
+        expect(flash[:danger]).to be_present
       end
     end    
   end
