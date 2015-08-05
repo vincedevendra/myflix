@@ -42,3 +42,5 @@
                   large_cover_url: '/tmp/monk_large.jpg',
                   category: category2)
   end
+
+  Video.all.each { |video| Fabricate.times(4, :review, video: video) }

@@ -2,8 +2,9 @@ require 'spec_helper.rb'
 
 describe Video do
   it { should belong_to(:category) }
-  it { should validate_presence_of(:title)}
-  it { should validate_presence_of(:description)}
+  it { should have_many(:reviews).order('created_at DESC') }
+  it { should validate_presence_of(:title) }
+  it { should validate_presence_of(:description) }
 
   describe '#search_by_title' do
     it "returns an empty array if there are no matches" do
@@ -50,6 +51,26 @@ describe Video do
     it "is case insensitive" do
       firefly = Video.create(title: "Firefly", description: 'show')
       expect(Video.search_by_title('firefly')).to eq([firefly])
+    end
+  end
+
+  describe "#average_rating" do
+    let(:alpha) { Fabricate(:video) }
+    before { Fabricate(:review, video: alpha, rating: 4) }  
+
+    it "if there is one rating (n), it returns n.0" do
+       expect(alpha.average_rating).to eq(4.0)
+    end
+
+    it "returns the average rating if there is more than one review" do
+      Fabricate(:review, video: alpha, rating: 5)
+      expect(alpha.average_rating).to eq(4.5)
+    end
+
+    it "rounds the average rating to the nearest tenth" do 
+      Fabricate(:review, video: alpha, rating: 5)
+      Fabricate(:review, video: alpha, rating: 4)
+      expect(alpha.average_rating).to eq(4.3)
     end
   end
 end
