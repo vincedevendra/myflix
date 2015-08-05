@@ -3,16 +3,27 @@ require 'spec_helper'
 describe VideosController do
   describe 'GET show' do
     let(:video) { Fabricate(:video) }
-    
-    it "sets @video when a user is signed in" do
-      session[:current_user_id] = Fabricate(:user).id
-      get :show, id: video.id
-      expect(assigns(:video)).to eq(video)
+
+    context "when a user is signed in" do
+      before { session[:current_user_id] = Fabricate(:user).id }
+      
+      it "sets @video" do
+        get :show, id: video.id
+        expect(assigns(:video)).to eq(video)
+      end
+
+      it "sets @review" do
+        get :show, id: video.id
+        expect(assigns(:review)).to be_instance_of(Review)
+        expect(assigns(:review)).to be_new_record
+      end  
     end
-    
-    it "redirects when no user is signed in" do
-      get :show, id: video.id
-      expect(response).to redirect_to(welcome_path)
+
+    context "when a user is not signed in" do
+      it "redirects to welcome_path" do
+        get :show, id: video.id
+        expect(response).to redirect_to(welcome_path)
+      end
     end
   end
 

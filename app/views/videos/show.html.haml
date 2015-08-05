@@ -16,35 +16,25 @@
 %section.reviews.container
   .row
     .col-sm-10.col-sm-offset-1
-      %form
+      = bootstrap_form_for [@video, @review] do |f|
         %fieldset
-          .form-group
-            %label Rate this video
-            .row
-              .col-sm-3
-                %select.form-control(name="")
-                  %option(value="5") 5 Stars
-                  %option(value="4") 4 Stars
-                  %option(value="3") 3 Stars
-                  %option(value="2") 2 Stars
-                  %option(value="1") 1 Star
-          .form-group
-            %label Write Review
-            .row
-              .col-sm-8
-                %textarea.form-control(name="" rows="6")
+          .row
+            = f.alert_message "Please fix the following problems:", error_summary: false
+            = f.select :rating, [["5 Stars", 5], ["4 Stars", 4], ["3 Stars", 3], ["2 Stars", 2], ["1 Star", 1]], { label: "Rate this video" }, wrapper_class: 'col-sm-3'
+          .row
+            = f.text_area :body, label: "Write Review", rows: "6", wrapper_class: 'col-sm-8'
         %fieldset.form-group.actions.clearfix
-          %input(type="submit" value="Submit" class="btn")
-          %a(href="") Cancel
-      - if @video.reviews.any?  
-        %header
-          %h3 User Reviews (#{@video.reviews.count})
-        %ul
-          - @video.reviews.each do |review|
-            %article.review
-              %li.row
-                .col-sm-2
-                  %span Rating: #{review.rating} / 5
-                  %p by <a href=""> #{review.user.full_name} </a>
-                .col-sm-8
-                  %p= review.body
+          = f.submit "Submit"    
+          = link_to "Cancel", @video
+      %header
+        %h3 User Reviews (#{@video.reviews.count})
+        - if @video.reviews.any?  
+          %ul
+            - @video.reviews.each do |review|
+              %article.review
+                %li.row
+                  .col-sm-2
+                    %span Rating: #{review.rating} / 5
+                    %p by <a href=""> #{review.user.full_name} </a>
+                  .col-sm-8
+                    %p= review.body
