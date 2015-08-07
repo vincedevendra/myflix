@@ -29,13 +29,13 @@ describe QueueItem do
   end
 
   describe "#category_title" do
-    it "should return the title of the category of the associated video" do
+    it "returns the title of the category of the associated video" do
       expect(q.category_title).to eq("Good Shows")
     end
   end
 
   describe "#category" do
-    it "should return the category of the associated video" do
+    it "returns the category of the associated video" do
       expect(q.category).to eq(category)
     end
   end
