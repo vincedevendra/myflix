@@ -6,8 +6,8 @@ describe QueueItemsController do
   describe "GET index" do
 
     context "when a user is signed in" do
-      let(:q1) { QueueItem.create(user: pete, position: 1, video: Fabricate(:video)) }
-      let(:q2) { QueueItem.create(user: pete, position: 2, video: Fabricate(:video)) }
+      let(:q1) { Fabricate(:queue_item, user: pete, position: 1) }
+      let(:q2) { Fabricate(:queue_item, user: pete, position: 2) }
             
       before { session[:current_user_id] = pete.id }
       
@@ -56,7 +56,7 @@ describe QueueItemsController do
         end
 
         it "assigns the new QueueItem one greater than the highest position of existing queue items" do
-          QueueItem.create(position: 1, user: pete, video: Fabricate(:video))
+          Fabricate(:queue_item, position: 1, user: pete)
           post :create, video_id: video.id
           expect(QueueItem.last.position).to eq(2)
         end
@@ -74,7 +74,7 @@ describe QueueItemsController do
 
       context "when the video is already in the user's queue" do
         before do 
-          QueueItem.create(position: 1, user: pete, video: video)
+          Fabricate(:queue_item, position: 1, user: pete, video: video)
           post :create, video_id: video.id
         end
 
@@ -105,9 +105,9 @@ describe QueueItemsController do
     let(:james) { Fabricate(:user) }
     let (:video1) { Fabricate(:video) }
     let (:video2) { Fabricate(:video) }
-    let!(:q1) { QueueItem.create(position: 1, user: pete, video: video1) }
-    let!(:q2) { QueueItem.create(position: 1, user: james, video: video2) }
-    let!(:q3) { QueueItem.create(position: 2, user: james, video: Fabricate(:video)) }
+    let!(:q1) { Fabricate(:queue_item, position: 1, user: pete, video: video1) }
+    let!(:q2) { Fabricate(:queue_item, position: 1, user: james, video: video2) }
+    let!(:q3) { Fabricate(:queue_item, position: 2, user: james, video: Fabricate(:video)) }
 
     context "when a user is signed in" do
       before do
@@ -125,7 +125,7 @@ describe QueueItemsController do
           expect(flash[:info]).to be_present
         end
 
-        it "reduces the position of all videos it was in front of by one" do
+        it "reduces the position of all items deleted item was in front of by one" do
           expect(q3.reload.position).to eq(1)
         end
 

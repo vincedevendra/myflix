@@ -3,13 +3,12 @@ require 'spec_helper'
 describe QueueItem do
   it { should belong_to(:user) }
   it { should belong_to(:video) }
-  it { should validate_uniqueness_of(:position).scoped_to(:user_id) }
   it { should validate_uniqueness_of(:video_id).scoped_to(:user_id) }
 
   let(:user) { Fabricate(:user) }
   let(:category) { Fabricate(:category, title: "Good Shows") }
   let(:video) { Fabricate(:video, title: "Arrested Development", category: category) }
-  let!(:q) { QueueItem.create(position: 1, user: user, video: video) }
+  let!(:q) { Fabricate(:queue_item, position: 1, user: user, video: video) }
     
   describe "#user_rating" do
 
@@ -42,12 +41,11 @@ describe QueueItem do
   end
 
   describe "#update_queue_position_numbers" do
-    let!(:q2) { QueueItem.create(position: 2, user: user, video: Fabricate(:video)) }
-    let!(:q3) { QueueItem.create(position: 3, user: user, video: Fabricate(:video)) }
-    let!(:q4) { QueueItem.create(position: 2, user: Fabricate(:user), video: video) }
-    
-    it "lowers the position number of every item in a user's queue that is 
-        higher than the deleted position by one" do
+    let!(:q2) { Fabricate(:queue_item, position: 2, user: user) }
+    let!(:q3) { Fabricate(:queue_item, position: 3, user: user) }
+    let!(:q4) { Fabricate(:queue_item, position: 2) }
+
+    it "lowers the position number of affected queue items" do
       deleted = q2.destroy
       deleted.update_queue_position_numbers
       expect(q3.reload.position).to eq(2)

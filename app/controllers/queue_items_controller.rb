@@ -5,9 +5,9 @@ class QueueItemsController < ApplicationController
   end
 
   def create
-    q = build_queue_item
+    new_queue_item = build_queue_item
 
-    if q.save
+    if new_queue_item.save
       flash[:success] = "This video was added to your queue."
     else
       flash[:danger] = "This video is already on your queue."
@@ -17,10 +17,10 @@ class QueueItemsController < ApplicationController
   end
 
   def destroy
-    q = QueueItem.find(params[:id])
-    if q.user == current_user
-      q.destroy
-      q.update_queue_position_numbers
+    queue_item = QueueItem.find(params[:id])
+    if queue_item.user == current_user
+      queue_item.destroy
+      queue_item.update_queue_position_numbers
       flash[:info] = "The video was removed from your queue."
     else
       flash[:danger] = "Access denied."

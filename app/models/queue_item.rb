@@ -3,7 +3,6 @@ class QueueItem < ActiveRecord::Base
   belongs_to :video
 
   validates_presence_of :user
-  validates_uniqueness_of :position, scope: :user_id
   validates_uniqueness_of :video_id, scope: :user_id
 
   delegate :category, to: :video
@@ -11,8 +10,8 @@ class QueueItem < ActiveRecord::Base
   delegate :title, to: :category, prefix: :category
 
   def user_rating
-    r = user.reviews.find_by(video: self.video)
-    r.rating if r
+    review = user.reviews.find_by(video: video)
+    review.rating if review
   end
 
   def update_queue_position_numbers
