@@ -4,7 +4,7 @@
       %article
         %header
           %h2 My Queue
-        - if @videos.any?
+        - if @queue_items.any?
           %table.table
             %thead
               %tr
@@ -15,21 +15,21 @@
                 %th(width="15%") Genre
                 %th(width="15%") Remove
             %tbody
-              - @videos.each do |video|
+              - @queue_items.each do |queue_item|
                 %tr
                   %td
-                    %input.form-control(type="text" value="1")
+                    = queue_item.position
                   %td
-                    = link_to video.title, video
+                    = link_to queue_item.video_title, queue_item.video
                   %td
                     = button_to "Play", nil, class: "btn btn-default"
                   %td
-                    = video.average_rating
+                    = queue_item.user_rating
                   %td
-                    = link_to video.category.title, video.category
+                    = link_to queue_item.category_title, queue_item.category
                   %td
-                    = link_to "", method: :post do
+                    = link_to queue_item, method: :delete do
                       %i.glyphicon.glyphicon-remove
           = button_to "Update Instant Queue", nil, class: "btn btn-default"
         - else
-          %h3 You haven't added any videos to your queue yet.
+          %h3 There are currently no videos in your queue.

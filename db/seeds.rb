@@ -23,5 +23,3 @@ Video.all.each do |video|
   end
 end
 
-q = QueueItem.create(user: User.find_by(full_name: 'Vince D'))
-q.videos = Video.all

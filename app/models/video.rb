@@ -16,4 +16,12 @@ class Video < ActiveRecord::Base
   def average_rating
     (reviews.select('rating').map{ |r| r.rating.to_f }.inject('+') / reviews.count).round(1)
   end
+
+  def belongs_to_user_queue?(user)
+    !!user_queue_item(user)
+  end
+
+  def user_queue_item(user)
+    QueueItem.find_by(user: user, video: self)
+  end
 end
