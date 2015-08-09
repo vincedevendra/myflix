@@ -82,10 +82,6 @@ describe QueueItemsController do
           expect(QueueItem.count).to eq(1)
         end
 
-        it "sets flash[:danger] message" do
-          expect(flash[:danger]).to be_present
-        end
-
         it "redirects back to the previous page" do
           expect(response).to redirect_to "from_whence_I_came"
         end
