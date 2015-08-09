@@ -35,7 +35,7 @@ describe ReviewsController do
         end
 
         it "sets flash[:success] message" do
-          expect(flash[:success]).not_to be_blank
+          expect(flash[:success]).to be_present
         end
         
         it "redirects back to video_path" do

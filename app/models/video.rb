@@ -1,6 +1,8 @@
 class Video < ActiveRecord::Base
   belongs_to :category
   has_many :reviews, -> { order('created_at DESC') }
+  has_many :queue_videos
+  has_many :queue_items, through: :queue_videos
 
   validates_presence_of :title, :description
   #validates :small_cover_url, presence: true
@@ -13,5 +15,13 @@ class Video < ActiveRecord::Base
 
   def average_rating
     (reviews.select('rating').map{ |r| r.rating.to_f }.inject('+') / reviews.count).round(1)
+  end
+
+  def belongs_to_user_queue?(user)
+    !!user_queue_item(user)
+  end
+
+  def user_queue_item(user)
+    QueueItem.find_by(user: user, video: self)
   end
 end

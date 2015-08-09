@@ -11,7 +11,12 @@
         %p= @video.description
         .actions
           %a.btn.btn-primary(href="") Watch Now
-          %a.btn.btn-default(href="") + My Queue
+          - unless current_user.has_video_in_queue?(@video)
+            = link_to '+ My Queue', video_queue_items_path(@video), method: 'post', class: 'btn btn-default'
+          - else
+            %br/
+            %br/
+            = link_to 'X Remove From Queue', queue_item_path(current_user.video_queue_item(@video)), method: :delete, class: 'btn btn-default'
 
 %section.reviews.container
   .row
@@ -20,7 +25,7 @@
         %fieldset
           .row
             = f.alert_message "Please fix the following problems:", error_summary: false
-            = f.select :rating, [["5 Stars", 5], ["4 Stars", 4], ["3 Stars", 3], ["2 Stars", 2], ["1 Star", 1]], { label: "Rate this video" }, wrapper_class: 'col-sm-3'
+            = f.select :rating, ratings_choices, { label: "Rate this video" }, wrapper_class: 'col-sm-3'
           .row
             = f.text_area :body, label: "Write Review", rows: "6", wrapper_class: 'col-sm-8'
         %fieldset.form-group.actions.clearfix
