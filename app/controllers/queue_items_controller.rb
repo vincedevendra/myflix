@@ -5,14 +5,8 @@ class QueueItemsController < ApplicationController
   end
 
   def create
-    new_queue_item = build_queue_item
-
-    if new_queue_item.save
-      flash[:success] = "This video was added to your queue."
-    else
-      flash[:danger] = "This video is already on your queue."
-    end
-
+    create_queue_item unless current_user.has_video_in_queue?(find_video)
+    flash[:success] = "This video was added to your queue."
     redirect_to :back
   end
 
@@ -42,7 +36,7 @@ class QueueItemsController < ApplicationController
       current_user.queue_items.count + 1
     end
 
-    def build_queue_item
-      QueueItem.new(user: current_user, video: find_video, position: set_position)
+    def create_queue_item
+      QueueItem.create(user: current_user, video: find_video, position: set_position)
     end
 end
