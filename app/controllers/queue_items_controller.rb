@@ -23,13 +23,19 @@ class QueueItemsController < ApplicationController
   end
 
   def update
-    if position_input_valid?(all_positions_from_params)
-      update_queue_item_positions
+    if position_input_valid?(all_positions_from_params) && user_owns_all_items?
+      
+      begin
+        update_queue_item_positions
+      rescue ActiveRecord::RecordInvalid
+        update_fails and return
+      end
+
       flash[:info] = "Your queue has been updated."
-      redirect_to :back
+      redirect_to queue_path
+    
     else
-      flash[:danger] = "Something went wrong. Please check your input and try again."
-      redirect_to :back
+      update_fails
     end
   end
 
@@ -63,16 +69,12 @@ class QueueItemsController < ApplicationController
       positions.uniq.size != positions.size
     end
 
-    def position_non_digits?(positions)
-      !!positions.join.match(/\D/)
-    end
-
     def position_too_high?(positions)
       !positions.select { |num_str| num_str.to_i > current_user.queue_items.size }.empty?
     end
 
     def position_input_valid?(positions)
-      !position_duplicates?(positions) && !position_too_high?(positions) && !position_non_digits?(positions) 
+      !position_duplicates?(positions) && !position_too_high?(positions)
     end
 
     def all_positions_from_params
@@ -91,5 +93,14 @@ class QueueItemsController < ApplicationController
       queue_items_from_params.each do |qi| 
         qi.update!(position: position_from_params(qi))
       end
+    end
+
+    def user_owns_all_items?
+      (queue_items_from_params - current_user.queue_items).empty?
+    end
+
+    def update_fails
+      flash[:danger] = "Something went wrong. Please check your input and try again."
+      redirect_to queue_path
     end
 end

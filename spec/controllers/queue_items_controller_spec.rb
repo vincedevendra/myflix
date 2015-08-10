@@ -156,145 +156,162 @@ describe QueueItemsController do
   end
 
   describe "POST update" do
-    let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
-    let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
-    let(:qi_3) { Fabricate(:queue_item, position: 3, user: pete) }
+    let!(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+    let!(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+    let!(:qi_3) { Fabricate(:queue_item, position: 3, user: pete) }
 
     context "when a user is signed in" do
       before { session[:current_user_id] = pete.id }
       
-      context "when user changes position numbers" do
-          
-        context "when the changes pass validations" do
-          before { request.env['HTTP_REFERER'] = "from_whence_I_came" }
-          
-          context "when positions are in the proper order" do
-            before do 
-              post :update, queue_items: { "#{qi_1.id}" => { position: 2 }, 
-                                           "#{qi_2.id}" => { position: 1 } 
+      context "when the changes pass validations" do
+
+        context "when the user does not own one of the queue items." do
+          let(:qi_4) { Fabricate(:queue_item) }
+
+          before do 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 2 },
+                                         "#{qi_2.id}" => { position: 1 }, 
+                                         "#{qi_4.id}" => { position: 3 } 
+                                        }
+          end
+
+          it "should not change anything" do
+            expect(qi_1.reload.position).to eq(1)
+          end
+
+          it "should set a danger message" do
+            expect(flash[:danger]).to be_present
+          end
+
+          it "should redirect to queue path" do
+            expect(response).to redirect_to queue_path
+          end
+        end
+
+        context "when positions are in the proper order" do
+          before do 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 2 }, 
+                                         "#{qi_2.id}" => { position: 1 } 
+                                        }
+          end
+
+          it "updates position numbers for all affected queue items" do
+            expect(qi_1.reload.position).to eq(2)
+            expect(qi_2.reload.position).to eq(1)
+          end
+
+          it "redirects back" do
+            expect(response).to redirect_to queue_path
+          end
+
+          it "sets info message" do
+            expect(flash[:info]).to be_present
+          end
+        end
+
+        context "when a position is set higher than the total number items" do
+          before do   
+            post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
+                                         "#{qi_2.id}" => { position: 4 } 
+                                        }
+          end
+
+          it "does not update any queue items" do                              
+            expect(qi_1.reload.position).to eq(1)
+            expect(qi_2.reload.position).to eq(2)
+          end
+
+          it "sets a danger message" do
+            expect(flash[:danger]).to be_present
+          end
+
+          it "redirects back" do
+            expect(response).to redirect_to queue_path
+          end
+        end
+
+        context "when two positions are set to the same number" do
+          before do 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
+                                         "#{qi_2.id}" => { position: 1 } 
+                                        }
+          end
+
+          it "doesn't change any position numbers" do
+            expect(qi_1.position).to eq(1)
+            expect(qi_2.position).to eq(2)
+          end
+
+          it "sets a danger message" do
+            expect(flash[:danger]).to be_present
+          end
+
+          it "redirects back" do
+            expect(response).to redirect_to queue_path
+          end
+        end
+
+        context "when validations fail" do 
+          context "when a position is set to a float" do
+            before do
+              post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
+                                           "#{qi_2.id}" => { position: 1.5 } 
                                           }
             end
 
-            it "updates position numbers for all affected queue items" do
-              expect(qi_1.reload.position).to eq(2)
-              expect(qi_2.reload.position).to eq(1)
+            it "does not update any queue items" do
+              expect(qi_1.reload.position).to eq(1)
+              expect(qi_2.reload.position).to eq(2)
+            end
+
+            it "sets a danger message" do
+              expect(flash[:danger]).to be_present
             end
 
             it "redirects back" do
-              expect(response).to redirect_to "from_whence_I_came"
-            end
-
-            it "sets info message" do
-              expect(flash[:info]).to be_present
+              expect(response).to redirect_to queue_path
             end
           end
 
-          context "when user input is undesirable" do 
-            context "when two positions are set to the same number" do
-              before do 
-                post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
-                                             "#{qi_2.id}" => { position: 1 } 
-                                            }
-              end
-
-              it "doesn't change any position numbers" do
-                expect(qi_1.position).to eq(1)
-                expect(qi_2.position).to eq(2)
-              end
-
-              it "sets a danger message" do
-                expect(flash[:danger]).to be_present
-              end
-
-              it "redirects back" do
-                expect(response).to redirect_to "from_whence_I_came"
-              end
+          context "when a position contains a non-digit character" do
+            before do
+              post :update, queue_items: { "#{qi_1.id}" => { position: "1123a" }, 
+                                           "#{qi_2.id}" => { position: 1.5 } 
+                                          }
             end
 
-            context "when a position is set to a float" do
-              before do
-                request.env['HTTP_REFERER'] = "from_whence_I_came"
-                post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
-                                             "#{qi_2.id}" => { position: 1.5 } 
-                                            }
-              end
-
-              it "does not update any queue items" do
-                expect(qi_1.reload.position).to eq(1)
-                expect(qi_2.reload.position).to eq(2)
-              end
-
-              it "sets a danger message" do
-                expect(flash[:danger]).to be_present
-              end
-
-              it "redirects back" do
-                expect(response).to redirect_to "from_whence_I_came"
-              end
+            it "does not update any queue items" do
+              expect(qi_1.reload.position).to eq(1)
+              expect(qi_2.reload.position).to eq(2)
             end
 
-            context "when a position contains a non-digit character" do
-              before do
-                request.env['HTTP_REFERER'] = "from_whence_I_came"
-                post :update, queue_items: { "#{qi_1.id}" => { position: "1123a" }, 
-                                             "#{qi_2.id}" => { position: 1.5 } 
-                                            }
-              end
-
-              it "does not update any queue items" do
-                expect(qi_1.reload.position).to eq(1)
-                expect(qi_2.reload.position).to eq(2)
-              end
-
-              it "sets a danger message" do
-                expect(flash[:danger]).to be_present
-              end
-
-              it "redirects back" do
-                expect(response).to redirect_to "from_whence_I_came"
-              end
+            it "sets a danger message" do
+              expect(flash[:danger]).to be_present
             end
 
-            context "when a position is set to a negative number" do
-              before do   
-                post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
-                                             "#{qi_2.id}" => { position: -1 } 
-                                            }
-              end
+            it "redirects back" do
+              expect(response).to redirect_to queue_path
+            end
+          end
 
-              it "does not update any queue items" do                              
-                expect(qi_1.reload.position).to eq(1)
-                expect(qi_2.reload.position).to eq(2)
-              end
-
-              it "sets a danger message" do
-                expect(flash[:danger]).to be_present
-              end
-
-              it "redirects back" do
-                expect(response).to redirect_to "from_whence_I_came"
-              end
+          context "when a position is set to a negative number" do
+            before do   
+              post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
+                                           "#{qi_2.id}" => { position: -1 } 
+                                          }
             end
 
-            context "when a position is set higher than the total number items" do
-              before do   
-                post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
-                                             "#{qi_2.id}" => { position: 4 } 
-                                            }
-              end
+            it "does not update any queue items" do                              
+              expect(qi_1.reload.position).to eq(1)
+              expect(qi_2.reload.position).to eq(2)
+            end
 
-              it "does not update any queue items" do                              
-                expect(qi_1.reload.position).to eq(1)
-                expect(qi_2.reload.position).to eq(2)
-              end
+            it "sets a danger message" do
+              expect(flash[:danger]).to be_present
+            end
 
-              it "sets a danger message" do
-                expect(flash[:danger]).to be_present
-              end
-
-              it "redirects back" do
-                expect(response).to redirect_to "from_whence_I_came"
-              end
+            it "redirects back" do
+              expect(response).to redirect_to queue_path
             end
           end
         end
