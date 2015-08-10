@@ -12,7 +12,17 @@ class QueueItem < ActiveRecord::Base
   delegate :title, to: :category, prefix: :category
 
   def user_rating
-    review = user.reviews.find_by(video: video)
-    review.rating if review
+    user_review.rating if user_review
+  end
+
+  def move_to_top_and_fix_positions
+    user.queue_items.select { |qi| qi.position < position }.each do |qi| 
+      qi.update(position: (qi.position + 1))
+    end
+    update(position: 1)
+  end
+
+  def user_review
+    user.reviews.find_by(video: video)
   end
 end

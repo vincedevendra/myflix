@@ -39,22 +39,4 @@ describe QueueItem do
       expect(q.category).to eq(category)
     end
   end
-
-  describe "#update_queue_position_numbers" do
-    let!(:q2) { Fabricate(:queue_item, position: 2, user: user) }
-    let!(:q3) { Fabricate(:queue_item, position: 3, user: user) }
-    let!(:q4) { Fabricate(:queue_item, position: 2) }
-
-    it "lowers the position number of affected queue items" do
-      deleted = q2.destroy
-      deleted.update_queue_position_numbers
-      expect(q3.reload.position).to eq(2)
-    end
-
-    it "leaves alone unaffected queue items" do
-      q.update_queue_position_numbers
-      expect(q4.reload.position).to eq(2)
-      expect(q.reload.position).to eq(1)
-    end
-  end
 end

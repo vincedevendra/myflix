@@ -163,15 +163,15 @@ describe QueueItemsController do
     context "when a user is signed in" do
       before { session[:current_user_id] = pete.id }
       
-      context "when the changes pass validations" do
+      context "when position changes pass validations" do
 
         context "when the user does not own one of the queue items." do
           let(:qi_4) { Fabricate(:queue_item, position: 5) }
 
           before do 
-            post :update, queue_items: { "#{qi_1.id}" => { position: 2 },
-                                         "#{qi_2.id}" => { position: 1 }, 
-                                         "#{qi_4.id}" => { position: 3 } 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 },
+                                         "#{qi_2.id}" => { position: 1, user_rating: 2 }, 
+                                         "#{qi_4.id}" => { position: 3, user_rating: 2 } 
                                         }
           end
 
@@ -186,8 +186,8 @@ describe QueueItemsController do
 
         context "when positions are in the proper order" do
           before do 
-            post :update, queue_items: { "#{qi_1.id}" => { position: 2 }, 
-                                         "#{qi_2.id}" => { position: 1 } 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 }, 
+                                         "#{qi_2.id}" => { position: 1, user_rating: 2 } 
                                         }
           end
 
@@ -205,10 +205,32 @@ describe QueueItemsController do
           end
         end
 
+        context "when positions are not set in order" do
+          before do   
+            post :update, queue_items: { "#{qi_1.id}" => { position: 6, user_rating: 2 }, 
+                                         "#{qi_2.id}" => { position: 3, user_rating: 2 },
+                                         "#{qi_3.id}" => { position: 2, user_rating: 2 }
+                                       }
+          end
+
+          it "normalizes position numbers" do                              
+            expect(qi_1.reload.position).to eq(3)
+            expect(qi_2.reload.position).to eq(2)
+          end
+
+          it "sets an info message" do
+            expect(flash[:info]).to be_present
+          end
+
+          it "redirects back" do
+            expect(response).to redirect_to queue_path
+          end
+        end
+
         context "when two positions are set to the same number" do
           before do 
-            post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
-                                         "#{qi_2.id}" => { position: 1 } 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
+                                         "#{qi_2.id}" => { position: 1, user_rating: 2 } 
                                         }
           end
 
@@ -229,8 +251,8 @@ describe QueueItemsController do
         context "when validations fail" do 
           context "when a position is set to a float" do
             before do
-              post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
-                                           "#{qi_2.id}" => { position: 1.5 } 
+              post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
+                                           "#{qi_2.id}" => { position: 1.5, user_rating: 2 } 
                                           }
             end
 
@@ -250,8 +272,8 @@ describe QueueItemsController do
 
           context "when a position contains a non-digit character" do
             before do
-              post :update, queue_items: { "#{qi_1.id}" => { position: "1123a" }, 
-                                           "#{qi_2.id}" => { position: 1.5 } 
+              post :update, queue_items: { "#{qi_1.id}" => { position: "1123a", user_rating: 2 }, 
+                                           "#{qi_2.id}" => { position: 1.5, user_rating: 2 } 
                                           }
             end
 
@@ -271,8 +293,8 @@ describe QueueItemsController do
 
           context "when a position is set to a negative number" do
             before do   
-              post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
-                                           "#{qi_2.id}" => { position: -1 } 
+              post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
+                                           "#{qi_2.id}" => { position: -1, user_rating: 2 } 
                                           }
             end
 
@@ -291,12 +313,48 @@ describe QueueItemsController do
           end
         end
       end
+    
+      context "when user changes video rating and validations pass" do
+        let(:video1) { Fabricate(:video) }
+        let(:video2) { Fabricate(:video) }
+        let!(:review1) { Fabricate(:review, user: pete, rating: 1, video: video1) }
+        let(:qi_5) { Fabricate(:queue_item, position: 1, user: pete, video: video1) }
+        let(:qi_6) { Fabricate(:queue_item, position: 2, user: pete, video: video2) }
+
+        it "updates the reviews if it already exists" do
+          post :update, queue_items: { "#{qi_5.id}" => { position: 1, user_rating: 4 } }
+          expect(qi_5.reload.user_rating).to eq(4)
+        end
+
+        it "creates a review with only the rating if it does not exist" do
+          post :update, queue_items: { "#{qi_6.id}" => { position: 1, user_rating: 4 } }
+          expect(qi_6.reload.user_rating).to eq(4)
+        end
+      end
+
+      context "when user changes video rating and validations fail" do
+        let(:video1) { Fabricate(:video) }
+        let(:video2) { Fabricate(:video) }
+        let!(:review1) { Fabricate(:review, user: pete, rating: 1, video: video1) }
+        let(:qi_5) { Fabricate(:queue_item, position: 1, user: pete, video: video1) }
+        let(:qi_6) { Fabricate(:queue_item, position: 2, user: pete, video: video2) }
+
+        before { post :update, queue_items: { "#{qi_5.id}" => { position: 3, user_rating: 6 } } }
+
+        it "doesn't update anything" do
+          expect(qi_5.reload.user_rating).to eq(1)
+        end
+
+        it "redirect_to queue_path" do
+          expect(response).to redirect_to queue_path
+        end
+      end
     end
 
     context "when no user is signed in" do
       it "redirect_to welcome_path" do
-        post :update, queue_items: { "#{qi_1.id}" => { position: 2 }, 
-                                     "#{qi_2.id}" => { position: 1 } 
+        post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 }, 
+                                     "#{qi_2.id}" => { position: 1, user_rating: 2 } 
                                      }
         expect(response).to redirect_to welcome_path
       end
@@ -343,29 +401,4 @@ describe QueueItemsController do
     end
   end
 end
-#       context "when user changes video rating" do
-#         let(:video1) { Fabricate(:video) }
-#         let(:video2) { Fabricate(:video) }
-#         let(:review1) { Fabricate(:review, rating: 1, video: video1) }
-#         let(:review2) { Fabricate(:review, rating: 2, video: video2) }
-#         let(:q1) { QueueItem.create(position: 1, user: pete, video: video1) }
-#         let(:q2) { QueueItem.create(position: 2, user: pete, video: video2) }
-
-#         it "finds all the reviews that are being changed"
-
-#         it "updates the reviews that are being changed" do
-#           # patch :update, id: 
-#         end
-#         it "sets info message"
-#         it "redirects back"
-#       end
-#       context "when nothing is changed" do
-#         it "sets warning message"
-#         it "redirects back"
-#       end
-#     end
-#     context "when no user is signed in" do
-#       it "redirect_to welcome_path"
-#     end
-#   end
-# end
+      
