@@ -166,7 +166,7 @@ describe QueueItemsController do
       context "when the changes pass validations" do
 
         context "when the user does not own one of the queue items." do
-          let(:qi_4) { Fabricate(:queue_item) }
+          let(:qi_4) { Fabricate(:queue_item, position: 5) }
 
           before do 
             post :update, queue_items: { "#{qi_1.id}" => { position: 2 },
@@ -175,12 +175,8 @@ describe QueueItemsController do
                                         }
           end
 
-          it "should not change anything" do
-            expect(qi_1.reload.position).to eq(1)
-          end
-
-          it "should set a danger message" do
-            expect(flash[:danger]).to be_present
+          it "should not change that item" do
+            expect(qi_4.reload.position).to eq(5)
           end
 
           it "should redirect to queue path" do
@@ -206,27 +202,6 @@ describe QueueItemsController do
 
           it "sets info message" do
             expect(flash[:info]).to be_present
-          end
-        end
-
-        context "when a position is set higher than the total number items" do
-          before do   
-            post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
-                                         "#{qi_2.id}" => { position: 4 } 
-                                        }
-          end
-
-          it "does not update any queue items" do                              
-            expect(qi_1.reload.position).to eq(1)
-            expect(qi_2.reload.position).to eq(2)
-          end
-
-          it "sets a danger message" do
-            expect(flash[:danger]).to be_present
-          end
-
-          it "redirects back" do
-            expect(response).to redirect_to queue_path
           end
         end
 

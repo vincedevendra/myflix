@@ -14,7 +14,7 @@ class QueueItemsController < ApplicationController
     queue_item = QueueItem.find(params[:id])
     if queue_item.user == current_user
       queue_item.destroy
-      queue_item.update_queue_positions_after_delete
+      normalize_positions
       flash[:info] = "The video was removed from your queue."
     else
       flash[:danger] = "Access denied."
@@ -23,17 +23,16 @@ class QueueItemsController < ApplicationController
   end
 
   def update
-    if position_input_valid?(all_positions_from_params) && user_owns_all_items?
-      
+    unless position_duplicates?
       begin
         update_queue_item_positions
+        normalize_positions
       rescue ActiveRecord::RecordInvalid
         update_fails and return
       end
 
       flash[:info] = "Your queue has been updated."
       redirect_to queue_path
-    
     else
       update_fails
     end
@@ -42,7 +41,7 @@ class QueueItemsController < ApplicationController
   def top
     queue_item = QueueItem.find(params[:id])
     if queue_item.user == current_user
-      queue_item.update_queue_positions_after_top
+      update_queue_positions_after_top(queue_item)
       queue_item.update(position: 1)
       flash[:info] = "The video was moved to the top of your queue."
     else
@@ -65,42 +64,32 @@ class QueueItemsController < ApplicationController
       QueueItem.create(user: current_user, video: find_video, position: set_position)
     end
 
-    def position_duplicates?(positions)
+    def position_duplicates?
+      positions = params[:queue_items].values.map { |qi| qi[:position] }
       positions.uniq.size != positions.size
     end
 
-    def position_too_high?(positions)
-      !positions.select { |num_str| num_str.to_i > current_user.queue_items.size }.empty?
-    end
-
-    def position_input_valid?(positions)
-      !position_duplicates?(positions) && !position_too_high?(positions)
-    end
-
-    def all_positions_from_params
-      params[:queue_items].values.map { |qi| qi[:position] }
-    end
-
-    def queue_items_from_params
-      QueueItem.find(params[:queue_items].keys)
-    end
-
-    def position_from_params(qi)
-      params[:queue_items][qi.id.to_s][:position]
-    end
-
     def update_queue_item_positions
-      queue_items_from_params.each do |qi| 
-        qi.update!(position: position_from_params(qi))
+      QueueItem.find(params[:queue_items].keys).each do |qi| 
+        qi.update!(position: params[:queue_items][qi.id.to_s][:position]) if qi.user == current_user
       end
-    end
-
-    def user_owns_all_items?
-      (queue_items_from_params - current_user.queue_items).empty?
     end
 
     def update_fails
       flash[:danger] = "Something went wrong. Please check your input and try again."
       redirect_to queue_path
+    end
+
+    def normalize_positions
+      current_user.queue_items.each_with_index do |queue_item, i|
+        queue_item.update(position: i+1)
+      end
+    end
+
+    def update_queue_positions_after_top(queue_item)
+      position_number = queue_item.position
+      queue_item.user.queue_items.select { |qi| qi.position < position_number }.each do |qi| 
+        qi.update(position: (qi.position + 1))
+      end
     end
 end
