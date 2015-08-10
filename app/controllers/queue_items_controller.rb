@@ -14,7 +14,7 @@ class QueueItemsController < ApplicationController
     queue_item = QueueItem.find(params[:id])
     if queue_item.user == current_user
       queue_item.destroy
-      queue_item.update_queue_position_numbers
+      queue_item.update_queue_positions_after_delete
       flash[:info] = "The video was removed from your queue."
     else
       flash[:danger] = "Access denied."
@@ -22,10 +22,29 @@ class QueueItemsController < ApplicationController
     redirect_to :back
   end
 
-#Not worried about this yet:
-  # def update
-  #   binding.pry
-  # end
+  def update
+    if position_input_valid?(all_positions_from_params)
+      update_queue_item_positions
+      flash[:info] = "Your queue has been updated."
+      redirect_to :back
+    else
+      flash[:danger] = "Something went wrong. Please check your input and try again."
+      redirect_to :back
+    end
+  end
+
+  def top
+    queue_item = QueueItem.find(params[:id])
+    if queue_item.user == current_user
+      queue_item.update_queue_positions_after_top
+      queue_item.update(position: 1)
+      flash[:info] = "The video was moved to the top of your queue."
+    else
+      flash[:danger] = "Access denied."
+    end
+
+    redirect_to queue_path
+  end
 
   private
     def find_video
@@ -38,5 +57,39 @@ class QueueItemsController < ApplicationController
 
     def create_queue_item
       QueueItem.create(user: current_user, video: find_video, position: set_position)
+    end
+
+    def position_duplicates?(positions)
+      positions.uniq.size != positions.size
+    end
+
+    def position_non_digits?(positions)
+      !!positions.join.match(/\D/)
+    end
+
+    def position_too_high?(positions)
+      !positions.select { |num_str| num_str.to_i > current_user.queue_items.size }.empty?
+    end
+
+    def position_input_valid?(positions)
+      !position_duplicates?(positions) && !position_too_high?(positions) && !position_non_digits?(positions) 
+    end
+
+    def all_positions_from_params
+      params[:queue_items].values.map { |qi| qi[:position] }
+    end
+
+    def queue_items_from_params
+      QueueItem.find(params[:queue_items].keys)
+    end
+
+    def position_from_params(qi)
+      params[:queue_items][qi.id.to_s][:position]
+    end
+
+    def update_queue_item_positions
+      queue_items_from_params.each do |qi| 
+        qi.update!(position: position_from_params(qi))
+      end
     end
 end

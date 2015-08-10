@@ -97,7 +97,6 @@ describe QueueItemsController do
   end
 
   describe "DELETE destroy" do
-    let(:pete) { Fabricate(:user) }
     let(:james) { Fabricate(:user) }
     let (:video1) { Fabricate(:video) }
     let (:video2) { Fabricate(:video) }
@@ -155,22 +154,203 @@ describe QueueItemsController do
       end
     end
   end
+
+  describe "POST update" do
+    let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+    let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+    let(:qi_3) { Fabricate(:queue_item, position: 3, user: pete) }
+
+    context "when a user is signed in" do
+      before { session[:current_user_id] = pete.id }
+      
+      context "when user changes position numbers" do
+          
+        context "when the changes pass validations" do
+          before { request.env['HTTP_REFERER'] = "from_whence_I_came" }
+          
+          context "when positions are in the proper order" do
+            before do 
+              post :update, queue_items: { "#{qi_1.id}" => { position: 2 }, 
+                                           "#{qi_2.id}" => { position: 1 } 
+                                          }
+            end
+
+            it "updates position numbers for all affected queue items" do
+              expect(qi_1.reload.position).to eq(2)
+              expect(qi_2.reload.position).to eq(1)
+            end
+
+            it "redirects back" do
+              expect(response).to redirect_to "from_whence_I_came"
+            end
+
+            it "sets info message" do
+              expect(flash[:info]).to be_present
+            end
+          end
+
+          context "when user input is undesirable" do 
+            context "when two positions are set to the same number" do
+              before do 
+                post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
+                                             "#{qi_2.id}" => { position: 1 } 
+                                            }
+              end
+
+              it "doesn't change any position numbers" do
+                expect(qi_1.position).to eq(1)
+                expect(qi_2.position).to eq(2)
+              end
+
+              it "sets a danger message" do
+                expect(flash[:danger]).to be_present
+              end
+
+              it "redirects back" do
+                expect(response).to redirect_to "from_whence_I_came"
+              end
+            end
+
+            context "when a position is set to a float" do
+              before do
+                request.env['HTTP_REFERER'] = "from_whence_I_came"
+                post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
+                                             "#{qi_2.id}" => { position: 1.5 } 
+                                            }
+              end
+
+              it "does not update any queue items" do
+                expect(qi_1.reload.position).to eq(1)
+                expect(qi_2.reload.position).to eq(2)
+              end
+
+              it "sets a danger message" do
+                expect(flash[:danger]).to be_present
+              end
+
+              it "redirects back" do
+                expect(response).to redirect_to "from_whence_I_came"
+              end
+            end
+
+            context "when a position contains a non-digit character" do
+              before do
+                request.env['HTTP_REFERER'] = "from_whence_I_came"
+                post :update, queue_items: { "#{qi_1.id}" => { position: "1123a" }, 
+                                             "#{qi_2.id}" => { position: 1.5 } 
+                                            }
+              end
+
+              it "does not update any queue items" do
+                expect(qi_1.reload.position).to eq(1)
+                expect(qi_2.reload.position).to eq(2)
+              end
+
+              it "sets a danger message" do
+                expect(flash[:danger]).to be_present
+              end
+
+              it "redirects back" do
+                expect(response).to redirect_to "from_whence_I_came"
+              end
+            end
+
+            context "when a position is set to a negative number" do
+              before do   
+                post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
+                                             "#{qi_2.id}" => { position: -1 } 
+                                            }
+              end
+
+              it "does not update any queue items" do                              
+                expect(qi_1.reload.position).to eq(1)
+                expect(qi_2.reload.position).to eq(2)
+              end
+
+              it "sets a danger message" do
+                expect(flash[:danger]).to be_present
+              end
+
+              it "redirects back" do
+                expect(response).to redirect_to "from_whence_I_came"
+              end
+            end
+
+            context "when a position is set higher than the total number items" do
+              before do   
+                post :update, queue_items: { "#{qi_1.id}" => { position: 1 }, 
+                                             "#{qi_2.id}" => { position: 4 } 
+                                            }
+              end
+
+              it "does not update any queue items" do                              
+                expect(qi_1.reload.position).to eq(1)
+                expect(qi_2.reload.position).to eq(2)
+              end
+
+              it "sets a danger message" do
+                expect(flash[:danger]).to be_present
+              end
+
+              it "redirects back" do
+                expect(response).to redirect_to "from_whence_I_came"
+              end
+            end
+          end
+        end
+      end
+    end
+
+    context "when no user is signed in" do
+      it "redirect_to welcome_path" do
+        post :update, queue_items: { "#{qi_1.id}" => { position: 2 }, 
+                                     "#{qi_2.id}" => { position: 1 } 
+                                     }
+        expect(response).to redirect_to welcome_path
+      end
+    end
+  end
+
+  describe "POST top" do
+    let!(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+    let!(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+    let!(:qi_3) { Fabricate(:queue_item, position: 3, user: pete) }
+
+    context "when a user is signed in" do 
+      before do
+        session[:current_user_id] = pete.id
+        post :top, id: qi_2.id
+      end
+
+      it "sets the position of the item to 1" do
+        expect(qi_2.reload.position).to eq(1)
+      end
+
+      it "adds one to the relevant item positions" do
+        expect(qi_1.reload.position).to eq(2)
+      end
+
+      it "leaves alone the relevant item positions" do
+        expect(qi_3.reload.position).to eq(3)
+      end
+
+      it "sets an info message" do
+        expect(flash[:info]).to be_present
+      end
+
+      it "redirects to the queue_path" do
+        expect(response).to redirect_to queue_path
+      end
+    end
+
+    context "when no user is signed in" do
+      it "redirects to welcome_path" do
+        post :top, id: qi_2.id
+        expect(response).to redirect_to welcome_path
+      end
+    end
+  end
 end
-# Not worried about this yet:
-#   describe "PATCH update" do
-#     context "when a user is signed in" do
-#       let(:pete) { Fabricate(:user) }
-#       context "when user changes position numbers" do
-#         context "when the changes pass validations" do
-#           it "finds queue_items with changed position numbers"
-#           it "updates position numbers for all affected queue items"
-#           it "redirects back"
-#           it "sets info message"
-#         context "when the changes fail validations" do
-#           it "does not update any queue items"
-#           it "renders 'queue_items/index' template"
-#         end
-#       end
 #       context "when user changes video rating" do
 #         let(:video1) { Fabricate(:video) }
 #         let(:video2) { Fabricate(:video) }

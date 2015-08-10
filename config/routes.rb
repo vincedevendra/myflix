@@ -13,6 +13,8 @@ Myflix::Application.routes.draw do
 
   get '/my_queue', to: 'queue_items#index', as: 'queue'
 
+  post '/update_queue', to: 'queue_items#update'
+
   resources :videos, only: [:index, :show] do
     collection do
       get 'search'
@@ -21,10 +23,11 @@ Myflix::Application.routes.draw do
     resources :queue_items, only: :create
   end
 
-  resources :queue_items, only: [:destroy]
-#Not worried about this yet:
-  # patch :update_queue, to: 'queue_items#update'
-  # put :update_queue, to: 'queue_items#update'
+  resources :queue_items, only: [:destroy] do
+    member do
+      post 'top'
+    end
+  end
 
   resources :users, only: :create
   resources :sessions, only: :create
