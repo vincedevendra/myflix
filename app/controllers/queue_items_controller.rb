@@ -65,8 +65,8 @@ class QueueItemsController < ApplicationController
     end
 
     def update_queue_items
-      params[:queue_items].each do | queue_item_id, data_hash |
-        ActiveRecord::Base.transaction do  
+      ActiveRecord::Base.transaction do  
+        params[:queue_items].each do | queue_item_id, data_hash |
           queue_item = QueueItem.find(queue_item_id)
           queue_item.update!(data_hash) if queue_item.user == current_user
         end

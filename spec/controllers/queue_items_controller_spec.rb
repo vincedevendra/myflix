@@ -156,27 +156,19 @@ describe QueueItemsController do
   end
 
   describe "POST update" do
-    let!(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
-    let!(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
-    let!(:qi_3) { Fabricate(:queue_item, position: 3, user: pete) }
-
+    
     context "when a user is signed in" do
       before { session[:current_user_id] = pete.id }
       
       context "when position changes pass validations" do
 
         context "when the user does not own one of the queue items." do
-          let(:qi_4) { Fabricate(:queue_item, position: 5) }
+          let(:qi_1) { Fabricate(:queue_item, position: 1) }
 
-          before do 
-            post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 },
-                                         "#{qi_2.id}" => { position: 1, user_rating: 2 }, 
-                                         "#{qi_4.id}" => { position: 3, user_rating: 2 } 
-                                        }
-          end
+          before { post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } } }                                      
 
           it "should not change that item" do
-            expect(qi_4.reload.position).to eq(5)
+            expect(qi_1.reload.position).to eq(1)
           end
 
           it "should redirect to queue path" do
@@ -185,6 +177,9 @@ describe QueueItemsController do
         end
 
         context "when positions are in the proper order" do
+          let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+          let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
           before do 
             post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 }, 
                                          "#{qi_2.id}" => { position: 1, user_rating: 2 } 
@@ -206,6 +201,10 @@ describe QueueItemsController do
         end
 
         context "when positions are not set in order" do
+          let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+          let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+          let(:qi_3) { Fabricate(:queue_item, position: 3, user: pete) }
+
           before do   
             post :update, queue_items: { "#{qi_1.id}" => { position: 6, user_rating: 2 }, 
                                          "#{qi_2.id}" => { position: 3, user_rating: 2 },
@@ -228,6 +227,9 @@ describe QueueItemsController do
         end
 
         context "when two positions are set to the same number" do
+          let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+          let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
           before do 
             post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
                                          "#{qi_2.id}" => { position: 1, user_rating: 2 } 
@@ -250,6 +252,9 @@ describe QueueItemsController do
 
         context "when validations fail" do 
           context "when a position is set to a float" do
+            let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+            let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
             before do
               post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
                                            "#{qi_2.id}" => { position: 1.5, user_rating: 2 } 
@@ -271,6 +276,9 @@ describe QueueItemsController do
           end
 
           context "when a position contains a non-digit character" do
+            let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+            let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
             before do
               post :update, queue_items: { "#{qi_1.id}" => { position: "1123a", user_rating: 2 }, 
                                            "#{qi_2.id}" => { position: 1.5, user_rating: 2 } 
@@ -292,6 +300,9 @@ describe QueueItemsController do
           end
 
           context "when a position is set to a negative number" do
+            let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+            let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
             before do   
               post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
                                            "#{qi_2.id}" => { position: -1, user_rating: 2 } 
@@ -315,34 +326,50 @@ describe QueueItemsController do
       end
     
       context "when user changes video rating and validations pass" do
-        let(:video1) { Fabricate(:video) }
-        let(:video2) { Fabricate(:video) }
-        let!(:review1) { Fabricate(:review, user: pete, rating: 1, video: video1) }
-        let(:qi_5) { Fabricate(:queue_item, position: 1, user: pete, video: video1) }
-        let(:qi_6) { Fabricate(:queue_item, position: 2, user: pete, video: video2) }
+          let(:video1) { Fabricate(:video) }
+          let(:video2) { Fabricate(:video) }
+          let!(:qi_1) { Fabricate(:queue_item, position: 1, user: pete, video: video1) }
+          let!(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+          let!(:review1) { Fabricate(:review, user: pete, rating: 1, video: video1) }
 
         it "updates the reviews if it already exists" do
-          post :update, queue_items: { "#{qi_5.id}" => { position: 1, user_rating: 4 } }
-          expect(qi_5.reload.user_rating).to eq(4)
+          post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 4 } }
+          expect(qi_1.reload.user_rating).to eq(4)
         end
 
         it "creates a review with only the rating if it does not exist" do
-          post :update, queue_items: { "#{qi_6.id}" => { position: 1, user_rating: 4 } }
-          expect(qi_6.reload.user_rating).to eq(4)
+          post :update, queue_items: { "#{qi_2.id}" => { position: 1, user_rating: 4 } }
+          expect(qi_2.reload.user_rating).to eq(4)
+        end
+      end
+
+      context "when no rating exists and none is selected" do
+        let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+        let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
+        before do
+          post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: "" },
+                                       "#{qi_2.id}" => { position: 1, user_rating: "" }
+                                      }
+        end
+
+        it "does not create a review" do
+          expect(qi_1.reload.user_review).to be_falsy
+        end
+
+        it "still updates the position number" do
+          expect(qi_1.reload.position).to eq(2)
         end
       end
 
       context "when user changes video rating and validations fail" do
-        let(:video1) { Fabricate(:video) }
-        let(:video2) { Fabricate(:video) }
-        let!(:review1) { Fabricate(:review, user: pete, rating: 1, video: video1) }
-        let(:qi_5) { Fabricate(:queue_item, position: 1, user: pete, video: video1) }
-        let(:qi_6) { Fabricate(:queue_item, position: 2, user: pete, video: video2) }
+        let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
 
-        before { post :update, queue_items: { "#{qi_5.id}" => { position: 3, user_rating: 6 } } }
+        before { post :update, queue_items: { "#{qi_1.id}" => { position: 3, user_rating: 6 } } }
 
         it "doesn't update anything" do
-          expect(qi_5.reload.user_rating).to eq(1)
+          expect(qi_1.reload.user_rating).to be_falsy
+          expect(qi_1.reload.position).to eq(1)
         end
 
         it "redirect_to queue_path" do
@@ -352,10 +379,10 @@ describe QueueItemsController do
     end
 
     context "when no user is signed in" do
+      let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+
       it "redirect_to welcome_path" do
-        post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 }, 
-                                     "#{qi_2.id}" => { position: 1, user_rating: 2 } 
-                                     }
+        post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } }
         expect(response).to redirect_to welcome_path
       end
     end

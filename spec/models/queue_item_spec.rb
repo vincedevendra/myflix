@@ -51,5 +51,10 @@ describe QueueItem do
       q.user_rating = 2
       expect(q.user_rating).to eq(2)
     end
+
+    it "does nothing if an empty string is set" do
+      q.user_rating = ""
+      expect(q.user_rating).to be_falsy
+    end
   end
 end

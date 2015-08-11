@@ -16,10 +16,12 @@ class QueueItem < ActiveRecord::Base
   end
 
   def user_rating=(new_rating)
-    if user_review
-      user_review.update!(skip_body: true, rating: new_rating)
-    else
-      Review.create!(skip_body: true, user: user, video: video, rating: new_rating)
+    unless new_rating.blank?
+      if user_review
+        user_review.update!(skip_body: true, rating: new_rating)
+      else
+        Review.create!(skip_body: true, user: user, video: video, rating: new_rating)
+      end
     end
   end
 
