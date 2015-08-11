@@ -64,31 +64,12 @@ class QueueItemsController < ApplicationController
       positions.uniq.size != positions.size
     end
 
-    def update_queue_item_positions
-      params[:queue_items].each do | queue_item_id, data_hash |
-        queue_item = QueueItem.find(queue_item_id)
-        queue_item.update!(position: data_hash[:position]) if queue_item.user == current_user
-      end
-    end
-
-    def update_user_ratings
-      params[:queue_items].each do | queue_item_id, data_hash |
-        queue_item = QueueItem.find(queue_item_id)
-        review = queue_item.user_review
-        new_rating = data_hash[:user_rating]
-
-        if review
-          review.update!(skip_body: true, rating: new_rating)
-        else
-          Review.create!(skip_body: true, user: current_user, video: queue_item.video, rating: new_rating)
-        end
-      end
-    end
-
     def update_queue_items
-      ActiveRecord::Base.transaction do
-        update_queue_item_positions
-        update_user_ratings
+      params[:queue_items].each do | queue_item_id, data_hash |
+        ActiveRecord::Base.transaction do  
+          queue_item = QueueItem.find(queue_item_id)
+          queue_item.update!(data_hash) if queue_item.user == current_user
+        end
       end
     end
 

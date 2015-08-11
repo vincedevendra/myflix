@@ -29,14 +29,27 @@ describe QueueItem do
   end
 
   describe "#category_title" do
-    it "should return the title of the category of the associated video" do
+    it "returns the title of the category of the associated video" do
       expect(q.category_title).to eq("Good Shows")
     end
   end
 
   describe "#category" do
-    it "should return the category of the associated video" do
+    it "returns the category of the associated video" do
       expect(q.category).to eq(category)
+    end
+  end
+
+  describe "#user_rating=(new_rating)" do
+    it "sets a new rating if a review already exists" do
+      review = Fabricate(:review, user: user, video: video, rating: 2)
+      q.user_rating = 2
+      expect(q.user_rating).to eq(2)
+    end
+
+    it "creates a review and sets the rating if no review exists" do
+      q.user_rating = 2
+      expect(q.user_rating).to eq(2)
     end
   end
 end

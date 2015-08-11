@@ -15,6 +15,14 @@ class QueueItem < ActiveRecord::Base
     user_review.rating if user_review
   end
 
+  def user_rating=(new_rating)
+    if user_review
+      user_review.update!(skip_body: true, rating: new_rating)
+    else
+      Review.create!(skip_body: true, user: user, video: video, rating: new_rating)
+    end
+  end
+
   def move_to_top_and_fix_positions
     user.queue_items.select { |qi| qi.position < position }.each do |qi| 
       qi.update(position: (qi.position + 1))
@@ -23,6 +31,6 @@ class QueueItem < ActiveRecord::Base
   end
 
   def user_review
-    user.reviews.find_by(video: video)
+    @user_review ||= user.reviews.find_by(video: video)
   end
 end
