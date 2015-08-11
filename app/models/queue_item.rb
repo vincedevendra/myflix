@@ -1,6 +1,4 @@
 class QueueItem < ActiveRecord::Base
-  default_scope { order(:position) }
-
   belongs_to :user
   belongs_to :video
 

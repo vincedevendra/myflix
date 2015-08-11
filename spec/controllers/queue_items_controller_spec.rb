@@ -165,7 +165,9 @@ describe QueueItemsController do
         context "when the user does not own one of the queue items." do
           let(:qi_1) { Fabricate(:queue_item, position: 1) }
 
-          before { post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } } }                                      
+          before do 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } }
+          end                                      
 
           it "should not change that item" do
             expect(qi_1.reload.position).to eq(1)
@@ -251,29 +253,6 @@ describe QueueItemsController do
         end
 
         context "when validations fail" do 
-          context "when a position is set to a float" do
-            let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
-            let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
-
-            before do
-              post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
-                                           "#{qi_2.id}" => { position: 1.5, user_rating: 2 } 
-                                          }
-            end
-
-            it "does not update any queue items" do
-              expect(qi_1.reload.position).to eq(1)
-              expect(qi_2.reload.position).to eq(2)
-            end
-
-            it "sets a danger message" do
-              expect(flash[:danger]).to be_present
-            end
-
-            it "redirects back" do
-              expect(response).to redirect_to queue_path
-            end
-          end
 
           context "when a position contains a non-digit character" do
             let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
@@ -337,7 +316,7 @@ describe QueueItemsController do
           expect(qi_1.reload.user_rating).to eq(4)
         end
 
-        it "creates a review with only the rating if it does not exist" do
+        it "creates a review if it does not exist" do
           post :update, queue_items: { "#{qi_2.id}" => { position: 1, user_rating: 4 } }
           expect(qi_2.reload.user_rating).to eq(4)
         end
