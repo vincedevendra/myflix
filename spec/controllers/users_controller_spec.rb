@@ -9,7 +9,7 @@ describe UsersController do
     end
 
     it "redirects to root_path for signed in user" do
-      session[:current_user_id] = Fabricate(:user).id
+      set_current_user
       get :new
       expect(response).to redirect_to root_path
     end
