@@ -97,7 +97,6 @@ describe QueueItemsController do
   end
 
   describe "DELETE destroy" do
-    let(:pete) { Fabricate(:user) }
     let(:james) { Fabricate(:user) }
     let (:video1) { Fabricate(:video) }
     let (:video2) { Fabricate(:video) }
@@ -155,45 +154,257 @@ describe QueueItemsController do
       end
     end
   end
+
+  describe "POST update" do
+    
+    context "when a user is signed in" do
+      before { session[:current_user_id] = pete.id }
+      
+      context "when position changes pass validations" do
+
+        context "when the user does not own one of the queue items." do
+          let(:qi_1) { Fabricate(:queue_item, position: 1) }
+
+          before do 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } }
+          end                                      
+
+          it "should not change that item" do
+            expect(qi_1.reload.position).to eq(1)
+          end
+
+          it "should redirect to queue path" do
+            expect(response).to redirect_to queue_path
+          end
+        end
+
+        context "when positions are in the proper order" do
+          let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+          let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
+          before do 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 }, 
+                                         "#{qi_2.id}" => { position: 1, user_rating: 2 } 
+                                        }
+          end
+
+          it "updates position numbers for all affected queue items" do
+            expect(qi_1.reload.position).to eq(2)
+            expect(qi_2.reload.position).to eq(1)
+          end
+
+          it "redirects back" do
+            expect(response).to redirect_to queue_path
+          end
+
+          it "sets info message" do
+            expect(flash[:info]).to be_present
+          end
+        end
+
+        context "when positions are not set in order" do
+          let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+          let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+          let(:qi_3) { Fabricate(:queue_item, position: 3, user: pete) }
+
+          before do   
+            post :update, queue_items: { "#{qi_1.id}" => { position: 6, user_rating: 2 }, 
+                                         "#{qi_2.id}" => { position: 3, user_rating: 2 },
+                                         "#{qi_3.id}" => { position: 2, user_rating: 2 }
+                                       }
+          end
+
+          it "normalizes position numbers" do                              
+            expect(qi_1.reload.position).to eq(3)
+            expect(qi_2.reload.position).to eq(2)
+          end
+
+          it "sets an info message" do
+            expect(flash[:info]).to be_present
+          end
+
+          it "redirects back" do
+            expect(response).to redirect_to queue_path
+          end
+        end
+
+        context "when two positions are set to the same number" do
+          let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+          let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
+          before do 
+            post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
+                                         "#{qi_2.id}" => { position: 1, user_rating: 2 } 
+                                        }
+          end
+
+          it "doesn't change any position numbers" do
+            expect(qi_1.position).to eq(1)
+            expect(qi_2.position).to eq(2)
+          end
+
+          it "sets a danger message" do
+            expect(flash[:danger]).to be_present
+          end
+
+          it "redirects back" do
+            expect(response).to redirect_to queue_path
+          end
+        end
+
+        context "when validations fail" do 
+
+          context "when a position contains a non-digit character" do
+            let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+            let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
+            before do
+              post :update, queue_items: { "#{qi_1.id}" => { position: "1123a", user_rating: 2 }, 
+                                           "#{qi_2.id}" => { position: 1.5, user_rating: 2 } 
+                                          }
+            end
+
+            it "does not update any queue items" do
+              expect(qi_1.reload.position).to eq(1)
+              expect(qi_2.reload.position).to eq(2)
+            end
+
+            it "sets a danger message" do
+              expect(flash[:danger]).to be_present
+            end
+
+            it "redirects back" do
+              expect(response).to redirect_to queue_path
+            end
+          end
+
+          context "when a position is set to a negative number" do
+            let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+            let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
+            before do   
+              post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
+                                           "#{qi_2.id}" => { position: -1, user_rating: 2 } 
+                                          }
+            end
+
+            it "does not update any queue items" do                              
+              expect(qi_1.reload.position).to eq(1)
+              expect(qi_2.reload.position).to eq(2)
+            end
+
+            it "sets a danger message" do
+              expect(flash[:danger]).to be_present
+            end
+
+            it "redirects back" do
+              expect(response).to redirect_to queue_path
+            end
+          end
+        end
+      end
+    
+      context "when user changes video rating and validations pass" do
+          let(:video1) { Fabricate(:video) }
+          let(:video2) { Fabricate(:video) }
+          let!(:qi_1) { Fabricate(:queue_item, position: 1, user: pete, video: video1) }
+          let!(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+          let!(:review1) { Fabricate(:review, user: pete, rating: 1, video: video1) }
+
+        it "updates the reviews if it already exists" do
+          post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 4 } }
+          expect(qi_1.reload.user_rating).to eq(4)
+        end
+
+        it "creates a review if it does not exist" do
+          post :update, queue_items: { "#{qi_2.id}" => { position: 1, user_rating: 4 } }
+          expect(qi_2.reload.user_rating).to eq(4)
+        end
+      end
+
+      context "when no rating exists and none is selected" do
+        let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+        let(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+
+        before do
+          post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: "" },
+                                       "#{qi_2.id}" => { position: 1, user_rating: "" }
+                                      }
+        end
+
+        it "does not create a review" do
+          expect(qi_1.reload.user_review).to be_falsy
+        end
+
+        it "still updates the position number" do
+          expect(qi_1.reload.position).to eq(2)
+        end
+      end
+
+      context "when user changes video rating and validations fail" do
+        let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+
+        before { post :update, queue_items: { "#{qi_1.id}" => { position: 3, user_rating: 6 } } }
+
+        it "doesn't update anything" do
+          expect(qi_1.reload.user_rating).to be_falsy
+          expect(qi_1.reload.position).to eq(1)
+        end
+
+        it "redirect_to queue_path" do
+          expect(response).to redirect_to queue_path
+        end
+      end
+    end
+
+    context "when no user is signed in" do
+      let(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+
+      it "redirect_to welcome_path" do
+        post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } }
+        expect(response).to redirect_to welcome_path
+      end
+    end
+  end
+
+  describe "POST top" do
+    let!(:qi_1) { Fabricate(:queue_item, position: 1, user: pete) }
+    let!(:qi_2) { Fabricate(:queue_item, position: 2, user: pete) }
+    let!(:qi_3) { Fabricate(:queue_item, position: 3, user: pete) }
+
+    context "when a user is signed in" do 
+      before do
+        session[:current_user_id] = pete.id
+        post :top, id: qi_2.id
+      end
+
+      it "sets the position of the item to 1" do
+        expect(qi_2.reload.position).to eq(1)
+      end
+
+      it "adds one to the relevant item positions" do
+        expect(qi_1.reload.position).to eq(2)
+      end
+
+      it "leaves alone the relevant item positions" do
+        expect(qi_3.reload.position).to eq(3)
+      end
+
+      it "sets an info message" do
+        expect(flash[:info]).to be_present
+      end
+
+      it "redirects to the queue_path" do
+        expect(response).to redirect_to queue_path
+      end
+    end
+
+    context "when no user is signed in" do
+      it "redirects to welcome_path" do
+        post :top, id: qi_2.id
+        expect(response).to redirect_to welcome_path
+      end
+    end
+  end
 end
-# Not worried about this yet:
-#   describe "PATCH update" do
-#     context "when a user is signed in" do
-#       let(:pete) { Fabricate(:user) }
-#       context "when user changes position numbers" do
-#         context "when the changes pass validations" do
-#           it "finds queue_items with changed position numbers"
-#           it "updates position numbers for all affected queue items"
-#           it "redirects back"
-#           it "sets info message"
-#         context "when the changes fail validations" do
-#           it "does not update any queue items"
-#           it "renders 'queue_items/index' template"
-#         end
-#       end
-#       context "when user changes video rating" do
-#         let(:video1) { Fabricate(:video) }
-#         let(:video2) { Fabricate(:video) }
-#         let(:review1) { Fabricate(:review, rating: 1, video: video1) }
-#         let(:review2) { Fabricate(:review, rating: 2, video: video2) }
-#         let(:q1) { QueueItem.create(position: 1, user: pete, video: video1) }
-#         let(:q2) { QueueItem.create(position: 2, user: pete, video: video2) }
-
-#         it "finds all the reviews that are being changed"
-
-#         it "updates the reviews that are being changed" do
-#           # patch :update, id: 
-#         end
-#         it "sets info message"
-#         it "redirects back"
-#       end
-#       context "when nothing is changed" do
-#         it "sets warning message"
-#         it "redirects back"
-#       end
-#     end
-#     context "when no user is signed in" do
-#       it "redirect_to welcome_path"
-#     end
-#   end
-# end
+      

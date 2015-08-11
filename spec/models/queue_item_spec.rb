@@ -3,6 +3,7 @@ require 'spec_helper'
 describe QueueItem do
   it { should belong_to(:user) }
   it { should belong_to(:video) }
+  it { should validate_numericality_of(:position).is_greater_than(0) }
   
   let(:user) { Fabricate(:user) }
   let(:category) { Fabricate(:category, title: "Good Shows") }
@@ -39,21 +40,21 @@ describe QueueItem do
     end
   end
 
-  describe "#update_queue_position_numbers" do
-    let!(:q2) { Fabricate(:queue_item, position: 2, user: user) }
-    let!(:q3) { Fabricate(:queue_item, position: 3, user: user) }
-    let!(:q4) { Fabricate(:queue_item, position: 2) }
-
-    it "lowers the position number of affected queue items" do
-      deleted = q2.destroy
-      deleted.update_queue_position_numbers
-      expect(q3.reload.position).to eq(2)
+  describe "#user_rating=(new_rating)" do
+    it "sets a new rating if a review already exists" do
+      review = Fabricate(:review, user: user, video: video, rating: 2)
+      q.user_rating = 2
+      expect(q.user_rating).to eq(2)
     end
 
-    it "leaves alone unaffected queue items" do
-      q.update_queue_position_numbers
-      expect(q4.reload.position).to eq(2)
-      expect(q.reload.position).to eq(1)
+    it "creates a review and sets the rating if no review exists" do
+      q.user_rating = 2
+      expect(q.user_rating).to eq(2)
+    end
+
+    it "does nothing if an empty string is set" do
+      q.user_rating = ""
+      expect(q.user_rating).to be_falsy
     end
   end
 end

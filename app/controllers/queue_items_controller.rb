@@ -14,7 +14,7 @@ class QueueItemsController < ApplicationController
     queue_item = QueueItem.find(params[:id])
     if queue_item.user == current_user
       queue_item.destroy
-      queue_item.update_queue_position_numbers
+      current_user.normalize_queue_item_positions
       flash[:info] = "The video was removed from your queue."
     else
       flash[:danger] = "Access denied."
@@ -22,21 +22,59 @@ class QueueItemsController < ApplicationController
     redirect_to :back
   end
 
-#Not worried about this yet:
-  # def update
-  #   binding.pry
-  # end
+  def update
+    unless position_duplicates?
+      begin
+        update_queue_items
+        current_user.normalize_queue_item_positions
+      rescue ActiveRecord::RecordInvalid
+        update_fails and return
+      end
+
+      flash[:info] = "Your queue has been updated."
+      redirect_to queue_path
+    else
+      update_fails
+    end
+  end
+
+  def top
+    queue_item = QueueItem.find(params[:id])
+    if queue_item.user == current_user
+      queue_item.move_to_top_and_fix_positions
+      flash[:info] = "The video was moved to the top of your queue."
+    else
+      flash[:danger] = "Access denied."
+    end
+
+    redirect_to queue_path
+  end
 
   private
     def find_video
       Video.find(params[:video_id])
     end
 
-    def set_position
-      current_user.queue_items.count + 1
+    def create_queue_item
+      QueueItem.create(user: current_user, video: find_video, position: current_user.position_of_new_queue_item)
     end
 
-    def create_queue_item
-      QueueItem.create(user: current_user, video: find_video, position: set_position)
+    def position_duplicates?
+      positions = params[:queue_items].values.map { |qi| qi[:position] }
+      positions.uniq.size != positions.size
+    end
+
+    def update_queue_items
+      ActiveRecord::Base.transaction do  
+        params[:queue_items].each do | queue_item_id, data_hash |
+          queue_item = QueueItem.find(queue_item_id)
+          queue_item.update!(data_hash) if queue_item.user == current_user
+        end
+      end
+    end
+
+    def update_fails
+      flash[:danger] = "Something went wrong. Please check your input and try again."
+      redirect_to queue_path
     end
 end
