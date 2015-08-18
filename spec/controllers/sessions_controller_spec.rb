@@ -3,7 +3,7 @@ require 'spec_helper'
 describe SessionsController do
   describe 'GET new' do
     it "redirects to root_path if user is logged in" do
-      session[:current_user_id] = Fabricate(:user).id
+      set_current_user
       get :new
       expect(response).to redirect_to root_path
     end
@@ -11,13 +11,14 @@ describe SessionsController do
 
   describe 'POST create' do
     let(:pete) { Fabricate(:user) }
+
     context "when user is authenticated" do
       before do
         post :create, email: pete.email, password: 'password'
       end
       
       it "signs in user" do
-        expect(session[:current_user_id]).to eq pete.id
+        expect(current_user).to eq pete
       end
       
       it "sets :success message" do
@@ -35,7 +36,7 @@ describe SessionsController do
       end
       
       it 'does not sign in user' do
-        expect(session[:current_user_id]).to be_nil
+        expect(current_user).to be_nil
       end
       
       it 'renders new' do
@@ -52,7 +53,7 @@ describe SessionsController do
     before { get :destroy }
 
     it "clears session[:current_user_id]" do
-      expect(session[:current_user_id]).to be_nil
+      expect(current_user).to be_nil
     end
 
     it "sets a :danger message" do
