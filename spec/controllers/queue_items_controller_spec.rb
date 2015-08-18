@@ -110,7 +110,8 @@ describe QueueItemsController do
       before { delete :destroy, id: q1.id }
 
       it "deletes a queue item only if the current user owns it" do
-        expect(:q1).to be_truthy
+        expect(:q1.reload).to be_truthy
+        expect(QueueItem.count).to eq(3)
       end
 
       it "flashes a danger message if no video is deleted" do
@@ -186,7 +187,7 @@ describe QueueItemsController do
           expect(flash[:info]).to be_present
         end
 
-        it "redirects back" do
+        it "redirects to the queue path" do
           expect(response).to redirect_to queue_path
         end
       end
@@ -210,7 +211,7 @@ describe QueueItemsController do
           expect(flash[:danger]).to be_present
         end
 
-        it "redirects back" do
+        it "redirects to the queue path" do
           expect(response).to redirect_to queue_path
         end
       end
