@@ -35,6 +35,6 @@ class User < ActiveRecord::Base
   end
 
   def following_with(user)
-    Following.where(user: self, followee: user).first
+    Following.find_by(user: self, followee: user)
   end
 end

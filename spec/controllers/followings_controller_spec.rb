@@ -7,27 +7,26 @@ describe FollowingsController do
     let(:alice) { Fabricate(:user) }
     let(:billy) { Fabricate(:user) }
     let(:following) { Fabricate(:following, user: alice, followee: billy) }
-    let(:action) { get :index }
 
     it "assigns @followings to current user's followings" do
       set_current_user(alice)
-      action
+      get :index
       expect(assigns(:followings)).to eq([following])
     end
 
-    it_behaves_like "no_current_user_redirect"
+    it_behaves_like "no_current_user_redirect" do
+      let(:action) { get :index }
   end
 
   describe "DELETE destroy" do
     let(:alice) { Fabricate(:user) }
     let(:billy) { Fabricate(:user) }
     let!(:following) { Fabricate(:following, user: alice, followee: billy) }
-    let(:action) { delete :destroy, id: following.id }
 
     context "when the current user is the one following" do
       before do 
         set_current_user(alice)
-        action
+        delete :destroy, id: following.id
       end
 
       it "deletes the following" do
@@ -42,7 +41,7 @@ describe FollowingsController do
     context "when the current user is not the one following" do
       before do
         set_current_user(billy)
-        action
+        delete :destroy, id: following.id
       end
 
       it "does not delete the following" do
@@ -52,11 +51,13 @@ describe FollowingsController do
 
     it "redirects back" do
       set_current_user(alice)
-      action
+      delete :destroy, id: following.id
       expect(response).to redirect_to "from_whence_I_came"
     end
 
-    it_behaves_like "no_current_user_redirect"
+    it_behaves_like "no_current_user_redirect" do
+      let(:action) { delete :destroy, id: following.id }
+    end
   end
 
   describe "POST create" do
@@ -95,11 +96,12 @@ describe FollowingsController do
       end
     end
 
-    context "if the current user if the potential followee" do
+    context "if the current user is the potential followee" do
       it "does not create a new following" do
         set_current_user(albert)
         Fabricate(:following, user: albert, followee: albert)
         post :create, followee_id: albert.id
+        expect(Following.count).to eq(0)
       end
     end
 

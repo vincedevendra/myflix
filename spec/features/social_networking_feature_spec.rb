@@ -24,7 +24,7 @@ feature "social networking" do
 
     click_remove_link(betty)
     expect(page).to have_selector("#flash_info", text: betty.full_name)
-    expect(page).not_to have_selector("tr", text: betty.full_name)
+    expect(page).to have_no_selector("tr", text: betty.full_name)
   end
 
   def click_remove_link(followee)
