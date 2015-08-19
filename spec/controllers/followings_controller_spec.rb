@@ -16,6 +16,7 @@ describe FollowingsController do
 
     it_behaves_like "no_current_user_redirect" do
       let(:action) { get :index }
+    end
   end
 
   describe "DELETE destroy" do
@@ -99,7 +100,6 @@ describe FollowingsController do
     context "if the current user is the potential followee" do
       it "does not create a new following" do
         set_current_user(albert)
-        Fabricate(:following, user: albert, followee: albert)
         post :create, followee_id: albert.id
         expect(Following.count).to eq(0)
       end

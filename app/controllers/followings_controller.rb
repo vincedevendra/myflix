@@ -5,7 +5,6 @@ class FollowingsController < ApplicationController
 
   def create
     following = Following.new(user: current_user, followee: User.find(params[:followee_id]))
-    
     if current_user == following.followee
       flash[:danger] = "You can't follow yourself."
     elsif following.save
