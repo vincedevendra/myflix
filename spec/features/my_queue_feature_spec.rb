@@ -38,7 +38,7 @@ feature "My Queue" do
 
   def add_video_to_queue(video)
     visit root_path
-    find("a[href='/videos/#{video.id}']").click
+    click_video_link(video)
     click_link "+ My Queue"
   end
   

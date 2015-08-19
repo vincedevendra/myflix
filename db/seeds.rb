@@ -15,7 +15,9 @@ Fabricate.times(4, :category)
 end
 
 Fabricate.times(10, :user)
-Fabricate(:user, full_name: 'Vince D', email: 'vj@d.com')
+user = Fabricate(:user, full_name: 'Vince D', email: 'vj@d.com')
+
+user.followees << User.first(4)
 
 Video.all.each do |video|
   4.times do

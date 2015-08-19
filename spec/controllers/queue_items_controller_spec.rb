@@ -110,7 +110,7 @@ describe QueueItemsController do
       before { delete :destroy, id: q1.id }
 
       it "deletes a queue item only if the current user owns it" do
-        expect(:q1.reload).to be_truthy
+        expect(q1.reload).to be_truthy
         expect(QueueItem.count).to eq(3)
       end
 

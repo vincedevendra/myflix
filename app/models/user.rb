@@ -2,12 +2,16 @@ require 'bcrypt'
 
 class User < ActiveRecord::Base
   has_secure_password 
-  has_many :reviews, -> { order("created_at DESC")}
+  has_many :reviews, -> { order("created_at DESC") }
   has_many :queue_items, -> { order("position") }
-
+  has_many :followings, -> { order(created_at: :desc) }
+  has_many :followeds, class_name: "Following", foreign_key: :followee_id
+  has_many :followees, through: :followings
+  has_many :followers, through: :followeds, source: :user
+  
   validates :email, presence: true, uniqueness: true
   validates :full_name, presence: true
-
+  
   def has_video_in_queue?(video)
     !!video_queue_item(video)
   end
@@ -24,5 +28,13 @@ class User < ActiveRecord::Base
 
   def position_of_new_queue_item
     queue_items.count + 1
+  end
+
+  def follows?(user)
+    followees.include?(user)
+  end
+
+  def following_with(user)
+    Following.where(user: self, followee: user).first
   end
 end

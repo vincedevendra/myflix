@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-def set_current_user
-  user = Fabricate(:user)
+def set_current_user(user=nil)
+  user = user || Fabricate(:user)
   session[:current_user_id] = user.id
 end
 
@@ -19,4 +19,8 @@ def sign_in_user(user=nil)
   fill_in "Email Address", with: user.email
   fill_in "Password", with: 'password'
   click_button 'Sign In'
+end
+
+def click_video_link(video)
+  find("a[href='/videos/#{video.id}']").click
 end

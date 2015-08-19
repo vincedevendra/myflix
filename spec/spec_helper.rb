@@ -61,7 +61,11 @@ RSpec.configure do |config|
   # https://relishapp.com/rspec/rspec-rails/v/3-0/docs
   config.infer_spec_type_from_file_location!
 
+  config.before(:suite) do
+    DatabaseCleaner.clean_with(:truncation)
+  end
+  
   config.after :all do
-    ActiveRecord::Base.subclasses.each(&:delete_all)
+    DatabaseCleaner.clean_with(:truncation)
   end
 end

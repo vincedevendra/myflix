@@ -54,25 +54,30 @@ describe UsersController do
     let!(:review) { Fabricate(:review, user: user, created_at: 2.days.ago) }
     let!(:review_2) { Fabricate(:review, user: user, created_at: 1.days.ago) }
 
-    before do
-      set_current_user
-      get :show, id: user.id
-    end
+    before { set_current_user }
 
     it "assigns @user from the params" do
+      get :show, id: user.id
       expect(assigns(:user)).to eq(user)
     end
 
     it "assigns @queue_items to those associated with the user" do
+      get :show, id: user.id
       expect(assigns(:queue_items)).to eq([queue_item, queue_item_2])
     end
 
     it "assigns @reviews to the reviews the user has written" do
+      get :show, id: user.id
       expect(assigns(:reviews)).to match_array([review, review_2])
     end
 
     it "orders @reviews by order created" do
+      get :show, id: user.id
       expect(assigns(:reviews)).to eq([review_2, review])
+    end
+
+    it_behaves_like "no_current_user_redirect" do
+      let(:action) { get :show, id: 3 }
     end
   end
 end
