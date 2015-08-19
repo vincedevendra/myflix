@@ -1,0 +1,42 @@
+%section.user.container
+  .row
+    .col-sm-10.col-sm-offset-1
+      %article
+        %header
+          %img(src="http://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(@user.email.downcase)}?s=40")
+          %h2 Videos in #{@user.full_name}'s Queue (#{@queue_items.count})
+          - unless current_user == @user
+            - if current_user.follows?(@user)
+              = link_to "Unfollow", following_path(current_user.following_with(@user)), method: :delete, class: 'btn btn-default pull-right'
+            - else
+              = link_to "Follow", followings_path(followee_id: @user.id), method: :post, class: 'btn btn-default pull-right' 
+        - if @queue_items.any?  
+          %table.table
+            %thead
+              %tr
+                %th(width="30%") Video Title
+                %th(width="15%") Genre
+            %tbody
+              - @queue_items.each do |queue_item|
+                %tr
+                  %td
+                    = link_to queue_item.video_title, queue_item.video
+                  %td
+                    = link_to queue_item.category_title, queue_item.category
+        - else
+          %h3 #{@user.full_name} doesn't have any videos queued.            
+
+%section.user_reviews.container
+  .row
+    .col-sm-10.col-sm-offset-1
+      %header
+        %h3 #{@user.full_name}'s Reviews (#{@reviews.count})
+      %ul
+        - @reviews.each do |review|
+          %article.review
+            %li.row
+              .col-sm-2
+                %p= link_to review.video.title, review.video
+                %col Rating: #{review.rating} / 5
+              .col-sm-8
+                %p= review.body
