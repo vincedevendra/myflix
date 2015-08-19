@@ -9,12 +9,15 @@ Myflix::Application.routes.draw do
   get '/register', to: 'users#new'
   
   get '/welcome', to: 'pages#welcome' 
-  get '/category/:id', to: 'categories#show', as: 'category'
 
   get '/my_queue', to: 'queue_items#index', as: 'queue'
 
   post '/update_queue', to: 'queue_items#update'
 
+  get '/people', to: 'followings#index'
+
+  resources :followings, only: [:create, :destroy]
+  resources :categories, only: :show
   resources :videos, only: [:index, :show] do
     collection do
       get 'search'
@@ -29,6 +32,6 @@ Myflix::Application.routes.draw do
     end
   end
 
-  resources :users, only: :create
+  resources :users, only: [:create, :show]
   resources :sessions, only: :create
 end

@@ -17,6 +17,12 @@ class UsersController < ApplicationController
     end
   end
 
+  def show
+    @user = User.find(params[:id])
+    @queue_items = @user.queue_items
+    @reviews = @user.reviews
+  end
+
   private
     def user_params
       params.require(:user).permit(:email, :full_name, :password, :password_confirmation)
