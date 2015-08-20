@@ -18,11 +18,29 @@ describe UsersController do
   describe 'POST create' do
     context "user input clears validations" do
       before do
-        post :create, user: Fabricate.attributes_for(:user)
+        post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
       end
 
       it "creates a new user object" do
         expect(User.count).to eq(1)
+      end
+
+      context "email sending" do
+        let(:subject) { ActionMailer::Base.deliveries.last }
+        after { ActionMailer::Base.deliveries.clear }
+
+        it "sends an email" do
+          expect(subject).to be_truthy
+        end
+
+        it "sends an email to the correct user" do
+          user = User.find_by(full_name: "Pete")
+          expect(subject.to).to eq([user.email])
+        end
+
+        it "sends an email with the correct content" do
+          expect(subject.body).to include("Welcome to MyFlix")
+        end
       end
 
       it "redirects to sign_in_path" do
@@ -34,6 +52,7 @@ describe UsersController do
       before do 
         post :create, user: { email: '' }
       end
+      after { ActionMailer::Base.deliveries.clear }
 
       it "does not save the user object" do
         expect(User.count).to eq(0)
@@ -41,6 +60,10 @@ describe UsersController do
 
       it "renders :new template" do
         expect(response).to render_template 'new'
+      end
+
+      it "does not send out an email" do
+        expect(ActionMailer::Base.deliveries).to be_empty
       end
     end
   end
