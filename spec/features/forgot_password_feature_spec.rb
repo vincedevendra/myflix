@@ -15,6 +15,7 @@ feature "forgot password" do
     submit_sign_in_form_with_new_password("123456")
 
     expect(page).to have_content "Welcome, Alyosha"
+    clear_emails
   end
 
   scenario "user enters an unknown email address" do
@@ -30,6 +31,7 @@ feature "forgot password" do
     open_email_and_follow_link
 
     expect(page).to have_content "password link is expired"
+    clear_emails
   end
 
   def submit_email_form(email)

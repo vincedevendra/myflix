@@ -11,8 +11,7 @@ class InvitesController < ApplicationController
       flash[:info] = "It looks like #{invitee.full_name} is already a member!"
       redirect_to new_invite_path
     elsif @invite.save
-      @invite.generate_token!
-      AppMailer.send_invitation_email(@invite, current_user).deliver
+      AppMailer.send_invitation_email(@invite.reload, current_user).deliver
       flash[:info] = "An invitation email has been sent to #{@invite.email}."
       redirect_to root_path
     else

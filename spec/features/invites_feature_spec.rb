@@ -20,6 +20,8 @@ feature "invitations" do
     click_link "Sign Out"
     sign_in_user(alice)
     expect_people_page_to_include(newly_created_user("Betty"))
+
+    clear_emails
   end
 
   def submit_invitation_form_and_sign_out(name, email)
