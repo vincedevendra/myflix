@@ -10,5 +10,6 @@
             .col-sm-4
               = f.password_field :password, label: "New Password"
               = f.password_field :password_confirmation, label: "Confirm New Password"
+              = hidden_field_tag :token, @user.token
         %fieldset.form-group.action
           = f.submit "Reset Password", class: "btn btn-default"

@@ -10,7 +10,8 @@ class User < ActiveRecord::Base
   has_many :followers, through: :followeds, source: :user
   
   validates :email, presence: true, uniqueness: true
-  validates_presence_of [:password, :full_name]
+  validates :password, presence: true, on: :create
+  validates :full_name, presence: true
   
   def has_video_in_queue?(video)
     !!video_queue_item(video)
