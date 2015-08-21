@@ -60,11 +60,7 @@ describe User do
     end
   end
 
-  describe "#generate_token!" do
-    it "generates and saves a token for the user" do
-      albert = Fabricate(:user)
-      albert.generate_token!
-      expect(albert.reload.token).to be_present
-    end
+  it_behaves_like "tokenable" do
+    let(:object) { Fabricate(:user) }
   end
 end

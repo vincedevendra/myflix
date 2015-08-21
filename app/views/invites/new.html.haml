@@ -1,24 +1,21 @@
 %section.invite.container
   .row
     .col-sm-10.col-sm-offset-1
-      = form_tag invites_path, class: 'invite' do
+      = bootstrap_form_for @invite, class: 'invite' do |f|
         %header
           %h1 Invite a friend to join MyFlix!
         %fieldset
           .form-group
-            = label_tag :name, "Friend's Name"
             .row
               .col-sm-4
-                = text_field_tag :name, nil, class: 'form-control'
+                = f.text_field :name, label: "Friend's Name"
           .form-group
-            = label_tag :email, "Friend's Email Address"
             .row
               .col-sm-4
-                = email_field_tag :email, nil, class: 'form-control'
+                = f.email_field :email, label: "Friend's Email Address"
           .form-group
-            = label_tag :message, "Invitation Message"
             .row
               .col-sm-6
-                = text_area_tag :message, "Please join this really cool site!", rows: 6, class: 'form-control'
+                = f.text_area :message, label: "Invitation Message", value: "Please join this really cool site!", rows: 6
         %fieldset.form-group.action
-        = submit_tag "Send Invitation", class: 'btn btn-default'
+        = f.submit "Send Invitation", class: 'btn btn-default'

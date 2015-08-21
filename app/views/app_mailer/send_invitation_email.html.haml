@@ -1,0 +1,9 @@
+!!! 5
+%html(lang="en-US")
+  %body
+    %h3 You've been invited to use MyFlix!
+    %hr
+    %p Click here to join: #{link_to "Join Now!", register_url(invite_token: @invite.token) }
+    %p Message: #{@invite.message}
+    %footer
+      &copy 2013 MyFLiX

@@ -1,6 +1,7 @@
 require 'bcrypt'
 
 class User < ActiveRecord::Base
+  include Tokenable
   has_secure_password 
   has_many :reviews, -> { order("created_at DESC") }
   has_many :queue_items, -> { order("position") }
@@ -12,7 +13,7 @@ class User < ActiveRecord::Base
   validates :email, presence: true, uniqueness: true
   validates :password, presence: true, on: :create
   validates :full_name, presence: true
-  
+
   def has_video_in_queue?(video)
     !!video_queue_item(video)
   end
@@ -37,9 +38,5 @@ class User < ActiveRecord::Base
 
   def following_with(user)
     Following.find_by(user: self, followee: user)
-  end
-
-  def generate_token!
-    update_attribute(:token, SecureRandom.urlsafe_base64)
   end
 end

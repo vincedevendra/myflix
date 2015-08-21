@@ -2,7 +2,6 @@ require 'spec_helper'
 
 describe UsersController do
   describe 'GET new' do
-
     it "sets @user to a new record when no signed in user" do
       get :new
       expect(assigns(:user)).to be_a_new(User)
@@ -13,20 +12,27 @@ describe UsersController do
       get :new
       expect(response).to redirect_to root_path
     end
+
+    context "when the user has followed an invitation link" do
+      let(:invite) { Fabricate(:invite) }
+      before { get :new, invite_token: invite.token }
+
+      it "sets @invite from the token in the params" do
+        expect(assigns(:invite)).to eq(invite)
+      end
+    end
   end
 
   describe 'POST create' do
     context "user input clears validations" do
-      before do
-        post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
-      end
-
       it "creates a new user object" do
+        post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
         expect(User.count).to eq(1)
       end
 
       context "email sending" do
         let(:subject) { ActionMailer::Base.deliveries.last }
+        before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete") }
         after { ActionMailer::Base.deliveries.clear }
 
         it "sends an email" do
@@ -43,7 +49,28 @@ describe UsersController do
         end
       end
 
+      context "when the user has followed an invitation link" do
+        let!(:alice) { Fabricate(:user) }
+        let(:invite) { Fabricate(:invite, user_id: alice.id) }
+        before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), invite_token: invite.token }
+
+        it "sets a following with the new user as the followee" do
+          pete = User.find_by(full_name: "Pete")
+          expect(alice.reload.followees).to include(pete)
+        end
+
+        it "sets a following with the inviter as the followee" do
+          pete = User.find_by(full_name: "Pete")
+          expect(pete.reload.followees).to include(alice)
+        end
+
+        it "clears the invitation token" do
+          expect(invite.reload.token).to be_nil
+        end
+      end
+
       it "redirects to sign_in_path" do
+        post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
         expect(response).to redirect_to sign_in_path
       end
     end

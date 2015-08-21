@@ -8,4 +8,9 @@ class AppMailer < ActionMailer::Base
     @token = token
     mail from: 'support@myflix.com', to: user.email, subject: "Instructions to Reset Your Password"
   end
+
+  def send_invitation_email(invite, user)
+    @invite = invite
+    mail from: 'info@myflix.com', to: invite.email, subject: "#{user.full_name} has invited you to try MyFlix!"
+  end
 end
