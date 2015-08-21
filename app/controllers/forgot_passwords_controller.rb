@@ -31,7 +31,7 @@ class ForgotPasswordsController < ApplicationController
       redirect_to sign_in_path
     else
       @token = params[:token]
-      render 'forgot_passwords/edit'
+      render 'edit'
     end
   end
 
