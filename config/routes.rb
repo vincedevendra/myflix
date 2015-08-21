@@ -5,16 +5,18 @@ Myflix::Application.routes.draw do
 
   get '/sign_in', to: 'sessions#new'
   get '/sign_out', to: 'sessions#destroy'
-
   get '/register', to: 'users#new'
-  
   get '/welcome', to: 'pages#welcome' 
-
   get '/my_queue', to: 'queue_items#index', as: 'queue'
-
   post '/update_queue', to: 'queue_items#update'
-
   get '/people', to: 'followings#index'
+
+  get '/forgot_password', to: 'forgot_passwords#new'
+  resources :forgot_passwords, only: [:create]
+  get '/reset_password/:token', to: 'forgot_passwords#edit', as: 'reset_password'
+  patch '/update_password', to: 'forgot_passwords#update'
+  get '/confirm_password_reset', to: 'forgot_passwords#show'
+  get '/invalid_token', to: 'forgot_passwords#invalid_token' 
 
   resources :followings, only: [:create, :destroy]
   resources :categories, only: :show

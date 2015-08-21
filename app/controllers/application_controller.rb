@@ -26,4 +26,9 @@ class ApplicationController < ActionController::Base
       redirect_to root_path
     end
   end
+
+  private
+    def user_params
+      params.require(:user).permit(:email, :full_name, :password, :password_confirmation)
+    end
 end
