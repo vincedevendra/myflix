@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
-  skip_before_action :require_user, only: [:new, :create]
-  before_action :redirect_when_logged_in, only: [:new, :create]
+  skip_before_action :require_user, except: [:show]
+  before_action :redirect_when_logged_in, except: [:show]
 
   def new
     @user = User.new
@@ -8,8 +8,8 @@ class UsersController < ApplicationController
 
   def create
     @user = User.new(user_params)
-
     if @user.save
+      AppMailer.send_welcome_email(@user).deliver
       flash[:success] = "You have succesfully registered! Please sign in below."
       redirect_to sign_in_path
     else 
@@ -22,9 +22,4 @@ class UsersController < ApplicationController
     @queue_items = @user.queue_items
     @reviews = @user.reviews
   end
-
-  private
-    def user_params
-      params.require(:user).permit(:email, :full_name, :password, :password_confirmation)
-    end
 end

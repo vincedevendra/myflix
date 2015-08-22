@@ -1,0 +1,14 @@
+%section.reset_password.container
+  .row
+    .col-sm-10.col-sm-offset-1
+      =bootstrap_form_for @user, url: update_password_path do |f|
+        %header
+          %h1 Reset Your Password
+        %fieldset.form-group
+          = f.alert_message "Please fix the following errors:"
+          .row
+            .col-sm-4
+              = f.password_field :password, label: "New Password"
+              = f.password_field :password_confirmation, label: "Confirm New Password"
+        %fieldset.form-group.action
+          = f.submit "Reset Password", class: "btn btn-default"

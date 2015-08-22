@@ -10,7 +10,7 @@ class User < ActiveRecord::Base
   has_many :followers, through: :followeds, source: :user
   
   validates :email, presence: true, uniqueness: true
-  validates :full_name, presence: true
+  validates_presence_of [:password, :full_name]
   
   def has_video_in_queue?(video)
     !!video_queue_item(video)
@@ -36,5 +36,9 @@ class User < ActiveRecord::Base
 
   def following_with(user)
     Following.find_by(user: self, followee: user)
+  end
+
+  def generate_token!
+    update_attribute(:token, SecureRandom.urlsafe_base64)
   end
 end

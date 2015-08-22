@@ -59,4 +59,12 @@ describe User do
       expect(alvin.following_with(betty)).to eq(following)
     end
   end
+
+  describe "#generate_token!" do
+    it "generates and saves a token for the user" do
+      albert = Fabricate(:user)
+      albert.generate_token!
+      expect(albert.reload.token).to be_present
+    end
+  end
 end

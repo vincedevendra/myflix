@@ -11,3 +11,5 @@
             = f.password_field :password, wrapper_class: 'col-sm-4'
         %fieldset
           = f.submit "Sign In"
+        %br/ 
+        .small= link_to "Forgot Password?", forgot_password_path
