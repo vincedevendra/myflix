@@ -17,8 +17,16 @@ describe UsersController do
       let(:invite) { Fabricate(:invite) }
       before { get :new, invite_token: invite.token }
 
-      it "sets @invite from the token in the params" do
-        expect(assigns(:invite)).to eq(invite)
+      it "sets @invite_name from the token in the params" do
+        expect(assigns(:invite_name)).to eq(invite.reload.name)
+      end
+      
+      it "sets @invite_name from the token in the params" do
+        expect(assigns(:invite_email)).to eq(invite.reload.email)
+      end
+      
+      it "sets @invite_name from the token in the params" do
+        expect(assigns(:invite_token)).to eq(invite.reload.token)
       end
     end
   end

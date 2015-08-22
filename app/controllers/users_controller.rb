@@ -30,7 +30,10 @@ class UsersController < ApplicationController
     def handle_invite_behavior_new
       if params[:invite_token] 
         if Invite.find_by(token: params[:invite_token])
-          @invite = Invite.find_by(token: params[:invite_token])
+          invite = Invite.find_by(token: params[:invite_token])
+          @invite_name = invite.name
+          @invite_email = invite.email
+          @invite_token = invite.token
         else
           redirect_to expired_link_path
           return
@@ -44,6 +47,7 @@ class UsersController < ApplicationController
         inviter = User.find(invite.user_id)
         Following.create(user: @user, followee: inviter)
         Following.create(user: inviter, followee: @user)
+
         invite.update_attribute(:token, nil)
       end
     end
