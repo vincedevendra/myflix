@@ -19,7 +19,7 @@ class UsersController < ApplicationController
       render 'new'
     end
   end
-  
+
   def show
     @user = User.find(params[:id])
     @queue_items = @user.queue_items
@@ -35,7 +35,7 @@ class UsersController < ApplicationController
           @invite_email = invite.email
           @invite_token = invite.token
         else
-          redirect_to invalid_token_path
+          redirect_to invalid_link_path
           return
         end
       end

@@ -2,11 +2,11 @@ require 'spec_helper'
 
 feature "forgot password" do
   given!(:alyosha) { Fabricate(:user, full_name: "Alyosha") }
-  
-  background do 
+
+  background do
     clear_emails
     visit forgot_password_path
-  end  
+  end
 
   scenario "user successfully resets password" do
     submit_email_form(alyosha.email)
@@ -20,7 +20,7 @@ feature "forgot password" do
 
   scenario "user enters an unknown email address" do
     submit_email_form("foo@bar.com")
-    
+
     expect(page).to have_content "We're having trouble"
   end
 
@@ -29,7 +29,7 @@ feature "forgot password" do
     open_email_and_follow_link
     submit_password_reset_form("123456")
     open_email_and_follow_link
-
+    
     expect(page).to have_content "password link is expired"
     clear_emails
   end
