@@ -3,6 +3,7 @@ require 'spec_helper'
 describe InvitesController do
   describe "GET new" do
     it "sets @invite to a new invite" do
+      set_current_user
       get :new
       expect(assigns(:invite)).to be_a_new(Invite)
     end
@@ -17,7 +18,7 @@ describe InvitesController do
     context "if the email does not belong to a myflix user" do
       context "when the invitation passes validations" do
         before { post :create, invite: Fabricate.attributes_for(:invite, email: 'bobs@youruncle.com') }
-        
+
         it "creates a new invite" do
           expect(Invite.count).to eq(1)
         end

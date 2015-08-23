@@ -16,6 +16,7 @@ Myflix::Application.routes.draw do
   get '/reset_password/:token', to: 'forgot_passwords#edit', as: 'reset_password'
   patch '/update_password', to: 'forgot_passwords#update'
   get '/confirm_password_reset', to: 'forgot_passwords#show'
+  
   get '/invalid_token', to: 'forgot_passwords#invalid_token' 
 
   resources :followings, only: [:create, :destroy]

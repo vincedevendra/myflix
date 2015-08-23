@@ -39,4 +39,8 @@ class User < ActiveRecord::Base
   def following_with(user)
     Following.find_by(user: self, followee: user)
   end
+
+  def follows(followee)
+    Following.create(user: self, followee: followee)
+  end
 end

@@ -33,6 +33,8 @@ describe UsersController do
 
   describe 'POST create' do
     context "user input clears validations" do
+      after { ActionMailer::Base.deliveries.clear }
+
       it "creates a new user object" do
         post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
         expect(User.count).to eq(1)
@@ -41,7 +43,6 @@ describe UsersController do
       context "email sending" do
         let(:subject) { ActionMailer::Base.deliveries.last }
         before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete") }
-        after { ActionMailer::Base.deliveries.clear }
 
         it "sends an email" do
           expect(subject).to be_truthy
