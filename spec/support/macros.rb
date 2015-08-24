@@ -24,3 +24,4 @@ end
 def click_video_link(video)
   find("a[href='/videos/#{video.id}']").click
 end
+

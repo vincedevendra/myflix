@@ -59,4 +59,26 @@ describe User do
       expect(alvin.following_with(betty)).to eq(following)
     end
   end
+
+  describe "#follows(followee)" do
+    let(:alvin) { Fabricate(:user) }
+    let(:bertha) { Fabricate(:user) }
+    before { alvin.follows(bertha) }
+
+    it "creates a new following" do
+      expect(Following.count).to eq(1)
+    end
+
+    it "creates a following with self as the user" do
+      expect(Following.first.user).to eq(alvin)
+    end
+
+    it "creates a following with followee from arg. as followee" do
+      expect(Following.first.followee).to eq(bertha)
+    end
+  end
+
+  it_behaves_like "tokenable" do
+    let(:object) { Fabricate(:user) }
+  end
 end
