@@ -14,6 +14,8 @@ gem 'bcrypt'
 gem 'fabrication'
 gem 'faker'
 gem 'figaro'
+gem 'sidekiq'
+gem 'unicorn'
 
 group :development do
   gem 'thin'
@@ -39,4 +41,3 @@ end
 group :production do
   gem 'rails_12factor'
 end
-

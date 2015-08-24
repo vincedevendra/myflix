@@ -6,12 +6,12 @@ class InvitesController < ApplicationController
   def create
     invitee = User.find_by(email: params[:invite][:email])
     @invite = Invite.new(invite_params.merge!(user_id: current_user.id))
-    
+
     if invitee
       flash[:info] = "It looks like #{invitee.full_name} is already a member!"
       redirect_to new_invite_path
     elsif @invite.save
-      AppMailer.send_invitation_email(@invite.reload, current_user).deliver
+      AppMailer.delay.send_invitation_email(@invite.reload, current_user)
       flash[:info] = "An invitation email has been sent to #{@invite.email}."
       redirect_to root_path
     else
