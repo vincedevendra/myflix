@@ -1,0 +1,19 @@
+machine:
+  ruby:
+    version: 2.1.7
+deployment:
+  production:
+    branch: master
+    commands:
+      - heroku maintenance:on --app vince-tl-myflix
+      - heroku pg:backups capture --app vince-tl-myflix
+      - git push git@heroku.com:vince-tl-myflix.git $CIRCLE_SHA1:refs/heads/master
+      - heroku run rake db:migrate --app vince-tl-myflix
+      - heroku maintenance:off --app vince-tl-myflix
+  staging:
+    branch: staging
+    commands:
+      - heroku maintenance:on --app staging_vince-tl-myflix
+      - git push git@heroku.com:staging_vince-tl-myflix.git $CIRCLE_SHA1:refs/heads/master
+      - heroku run rake db:migrate --app staging_vince-tl-myflix
+      - heroku maintenance:off --app staging_vince-tl-myflix
