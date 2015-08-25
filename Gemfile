@@ -16,6 +16,8 @@ gem 'faker'
 gem 'figaro'
 gem 'sidekiq'
 gem 'unicorn'
+gem 'carrierwave'
+gem 'carrierwave-aws'
 
 group :development do
   gem 'thin'

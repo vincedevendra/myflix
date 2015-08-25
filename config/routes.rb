@@ -41,4 +41,7 @@ Myflix::Application.routes.draw do
   resources :invites, only: [:new, :create]
   get '/invalid_link', to: 'pages#invalid_link'
 
+  namespace :admin do
+    resources :videos, only: [:new, :create]
+  end
 end
