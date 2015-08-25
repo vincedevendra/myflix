@@ -20,12 +20,12 @@ describe UsersController do
       it "sets @invite_name from the token in the params" do
         expect(assigns(:invite_name)).to eq(invite.reload.name)
       end
-      
-      it "sets @invite_name from the token in the params" do
+
+      it "sets @invite_email from the token in the params" do
         expect(assigns(:invite_email)).to eq(invite.reload.email)
       end
-      
-      it "sets @invite_name from the token in the params" do
+
+      it "sets @invite_token from the token in the params" do
         expect(assigns(:invite_token)).to eq(invite.reload.token)
       end
     end
@@ -85,7 +85,7 @@ describe UsersController do
     end
 
     context "user input fails validations" do
-      before do 
+      before do
         post :create, user: { email: '' }
       end
       after { ActionMailer::Base.deliveries.clear }

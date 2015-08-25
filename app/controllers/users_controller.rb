@@ -36,7 +36,6 @@ class UsersController < ApplicationController
           @invite_token = invite.token
         else
           redirect_to invalid_link_path
-          return
         end
       end
     end
