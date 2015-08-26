@@ -29,3 +29,12 @@ def set_admin(user=nil)
   user ||= Fabricate(:user, admin: true)
   session[:current_user_id] = user.id
 end
+
+def sign_out
+  click_link "Sign Out"
+end
+
+def sign_in_admin(admin=nil)
+  admin ||= Fabricate(:admin)
+  sign_in_user(admin)
+end
