@@ -10,7 +10,7 @@
             %span Rating: #{@video.average_rating}/5.0
         %p= @video.description
         .actions
-          %a.btn.btn-primary(href="") Watch Now
+          =link_to "Watch Now", @video.video_url, class: 'btn btn-primary'
           - unless current_user.has_video_in_queue?(@video)
             = link_to '+ My Queue', video_queue_items_path(@video), method: 'post', class: 'btn btn-default'
           - else
@@ -29,11 +29,11 @@
           .row
             = f.text_area :body, label: "Write Review", rows: "6", wrapper_class: 'col-sm-8'
         %fieldset.form-group.actions.clearfix
-          = f.submit "Submit"    
+          = f.submit "Submit"
           = link_to "Cancel", @video
       %header
         %h3 User Reviews (#{@video.reviews.count})
-        - if @video.reviews.any?  
+        - if @video.reviews.any?
           %ul
             - @video.reviews.each do |review|
               %article.review
