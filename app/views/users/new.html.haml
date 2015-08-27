@@ -35,5 +35,5 @@
             .col-sm-2
               = select_year(Date.today.year, {start_year: Date.today.year, end_year: Date.today.year + 4}, name: nil, class: 'form-control', "data-stripe" => "exp-year")
         %fieldset.actions.control-group.col-sm-offset-2
-          .control
+          .controls
             = f.submit "Sign Up"

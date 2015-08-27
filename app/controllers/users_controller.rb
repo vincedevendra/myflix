@@ -62,7 +62,7 @@ class UsersController < ApplicationController
       token = params[:stripeToken]
 
       # begin
-      if token
+      if token #remove when specs are updated
         charge = Stripe::Charge.create(
           :amount => 999,
           :currency => "usd",
