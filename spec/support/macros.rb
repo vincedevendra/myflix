@@ -38,3 +38,14 @@ def sign_in_admin(admin=nil)
   admin ||= Fabricate(:admin)
   sign_in_user(admin)
 end
+
+def generate_stripe_token
+  Stripe::Token.create(
+    :card => {
+    :number => card_number,
+    :exp_month => 8,
+    :exp_year => 2016,
+    :cvc => "314"
+    },
+  ).id
+end

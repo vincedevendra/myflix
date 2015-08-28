@@ -1,3 +1,4 @@
+
 require 'spec_helper'
 
 describe UsersController do
@@ -32,65 +33,74 @@ describe UsersController do
   end
 
   describe 'POST create' do
-    context "user input clears validations" do
+    context "when user input clears validations" do
       after { ActionMailer::Base.deliveries.clear }
 
-      it "creates a new user object" do
-        post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
-        expect(User.count).to eq(1)
-      end
-
-      context "email sending" do
-        let(:subject) { ActionMailer::Base.deliveries.last }
-        before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete") }
-
-        it "sends an email" do
-          expect(subject).to be_truthy
+      context "when card info is valid" do
+        before do
+          charge = double('charge')
+          StripeWrapper::Charge.stub(:create) { charge }
+          charge.stub(:successful?) { true }
         end
 
-        it "sends an email to the correct user" do
-          user = User.find_by(full_name: "Pete")
-          expect(subject.to).to eq([user.email])
+        it "creates a new user object" do
+          post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), stripeToken: '111'
+          expect(User.count).to eq(1)
         end
 
-        it "sends an email with the correct content" do
-          expect(subject.body).to include("Welcome to MyFlix")
-        end
-      end
+        context "email sending" do
+          let(:subject) { ActionMailer::Base.deliveries.last }
+          before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), stripeToken: '111' }
 
-      context "when the user has followed an invitation link" do
-        let!(:alice) { Fabricate(:user) }
-        let(:invite) { Fabricate(:invite, user_id: alice.id) }
-        before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), invite_token: invite.token }
+          it "sends an email" do
+            expect(subject).to be_truthy
+          end
 
-        it "sets a following with the new user as the followee" do
-          pete = User.find_by(full_name: "Pete")
-          expect(alice.reload.followees).to include(pete)
-        end
+          it "sends an email to the correct user" do
+            user = User.find_by(full_name: "Pete")
+            expect(subject.to).to eq([user.email])
+          end
 
-        it "sets a following with the inviter as the followee" do
-          pete = User.find_by(full_name: "Pete")
-          expect(pete.reload.followees).to include(alice)
+          it "sends an email with the correct content" do
+            expect(subject.body).to include("Welcome to MyFlix")
+          end
         end
 
-        it "clears the invitation token" do
-          expect(invite.reload.token).to be_nil
-        end
-      end
+        context "when the user has followed an invitation link" do
+          let!(:alice) { Fabricate(:user) }
+          let(:invite) { Fabricate(:invite, user_id: alice.id) }
+          before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), invite_token: invite.token, stripeToken: '111' }
 
-      it "redirects to sign_in_path" do
-        post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
-        expect(response).to redirect_to sign_in_path
+          it "sets a following with the new user as the followee" do
+            pete = User.find_by(full_name: "Pete")
+            expect(alice.reload.followees).to include(pete)
+          end
+
+          it "sets a following with the inviter as the followee" do
+            pete = User.find_by(full_name: "Pete")
+            expect(pete.reload.followees).to include(alice)
+          end
+
+          it "clears the invitation token" do
+            expect(invite.reload.token).to be_nil
+          end
+        end
+
+        it "redirects to sign_in_path" do
+          post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), stripeToken: '111'
+          expect(response).to redirect_to sign_in_path
+        end
       end
     end
 
-    context "user input fails validations" do
+    context "when user input fails validations" do
       before do
-        post :create, user: { email: '' }
+        post :create, user: { email: '' }, stripeToken: '111'
       end
+
       after { ActionMailer::Base.deliveries.clear }
 
-      it "does not save the user object" do
+      it "does not save the user object"  do
         expect(User.count).to eq(0)
       end
 
