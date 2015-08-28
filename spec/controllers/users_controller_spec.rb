@@ -38,9 +38,8 @@ describe UsersController do
 
       context "when card info is valid" do
         before do
-          charge = double('charge')
-          StripeWrapper::Charge.stub(:create) { charge }
-          charge.stub(:successful?) { true }
+          charge = double('charge', successful?: true)
+          allow(StripeWrapper::Charge).to receive(:create) { charge }
         end
 
         it "creates a new user object" do
@@ -87,29 +86,63 @@ describe UsersController do
         end
 
         it "redirects to sign_in_path" do
-          post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), stripeToken: '111'
+          post :create, user: Fabricate.attributes_for(:user), stripeToken: '111'
           expect(response).to redirect_to sign_in_path
+        end
+      end
+
+      context "when card info is invalid" do
+        before do
+          charge = double('charge', successful?: false)
+          allow(charge).to receive(:error_message) { 'The card was declined.' }
+          allow(StripeWrapper::Charge).to receive(:create) { charge }
+          post :create, user: Fabricate.attributes_for(:user), stripeToken: '111'
+        end
+
+        it "does not save the user object"  do
+          expect(User.count).to eq(0)
+        end
+
+        it "sets a flash[:danger] message" do
+          expect(flash[:danger]).to eq('The card was declined.')
+        end
+
+        it "renders :new template" do
+          expect(response).to render_template 'new'
+        end
+
+        it "does not send out an email" do
+          expect(ActionMailer::Base.deliveries).to be_empty
         end
       end
     end
 
     context "when user input fails validations" do
-      before do
-        post :create, user: { email: '' }, stripeToken: '111'
-      end
-
       after { ActionMailer::Base.deliveries.clear }
 
       it "does not save the user object"  do
+        post :create, user: { email: '' }, stripeToken: '111'
         expect(User.count).to eq(0)
       end
 
       it "renders :new template" do
+        post :create, user: { email: '' }, stripeToken: '111'
         expect(response).to render_template 'new'
       end
 
       it "does not send out an email" do
+        post :create, user: { email: '' }, stripeToken: '111'
         expect(ActionMailer::Base.deliveries).to be_empty
+      end
+
+      it "does not charge the card" do
+        expect(StripeWrapper::Charge).not_to receive(:create)
+        post :create, user: { email: '' }, stripeToken: '111'
+      end
+
+      it "sets a flash[:danger] message" do
+        post :create, user: { email: '' }, stripeToken: '111'
+        expect(flash[:danger]).to include("Please fix")
       end
     end
   end

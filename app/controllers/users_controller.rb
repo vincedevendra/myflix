@@ -9,13 +9,20 @@ class UsersController < ApplicationController
 
   def create
     @user = User.new(user_params)
-    if @user.valid? && charge_successful?
-      @user.save
-      handle_invite_behavior_create
-      AppMailer.send_welcome_email(@user).deliver
-      flash[:success] = "You have succesfully registered! Please sign in below."
-      redirect_to sign_in_path
+    if @user.valid?
+      charge = handle_stripe_charge
+      if charge.successful?
+        @user.save
+        handle_invite_behavior_create
+        AppMailer.send_welcome_email(@user).deliver
+        flash[:success] = "You have successfully registered! Please sign in below."
+        redirect_to sign_in_path
+      else
+        flash.now[:danger] = charge.error_message
+        render 'new'
+      end
     else
+      flash.now[:danger] = "Please fix the following errors:"
       render 'new'
     end
   end
@@ -62,14 +69,5 @@ class UsersController < ApplicationController
         token: token,
         description: "1st month of service for #{@user.full_name}"
       )
-      unless charge.successful?
-        flash.now[:danger] = charge.error_message
-        false
-      end
-      true
-    end
-
-    def charge_successful?
-      !!handle_stripe_charge
     end
 end

@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-feature "invitations" do
+feature "invitations", {js: true, vcr: true } do
   given!(:alice) { Fabricate(:user) }
 
-  scenario "user invites a friend", {js: true, vcr: true } do
+  scenario "user invites a friend" do
     sign_in_user(alice)
     click_link("Welcome")
     click_link("Invite a Friend")
@@ -13,8 +13,9 @@ feature "invitations" do
     expect_name_and_email_fields_to_be_filled("Betty", "foo@bar.com")
 
     submit_register_form('password')
-    betty = User.find_by(full_name: "Betty")
-    sign_in_user(betty)
+    expect(page).to have_content "You have successfully registered!"
+
+    sign_in_betty
     expect_people_page_to_include(alice)
 
     click_link "Welcome"
@@ -55,6 +56,13 @@ feature "invitations" do
 
   def newly_created_user(name)
     User.find_by(full_name: name)
+  end
+
+  def sign_in_betty
+    visit '/sign_in'
+    fill_in "Email Address", with: "foo@bar.com"
+    fill_in "Password", with: 'password'
+    click_button 'Sign In'
   end
 
   def expect_people_page_to_include(user)

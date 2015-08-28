@@ -5,7 +5,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/charges
     body:
       encoding: US-ASCII
-      string: amount=999&currency=usd&source=tok_16eaBLLBlbbB1VNDGsearM4P&description=1st%20month%20of%20service%20for%20Betty
+      string: amount=999&currency=usd&source=tok_16eoXzLBlbbB1VNDvsXeVFRX&description=1st%20month%20of%20service%20for%20Betty
     headers:
       Accept:
       - "*/*; q=0.5, application/xml"
@@ -31,7 +31,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 27 Aug 2015 23:53:24 GMT
+      - Fri, 28 Aug 2015 15:13:48 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -49,7 +49,7 @@ http_interactions:
       Cache-Control:
       - no-cache, no-store
       Request-Id:
-      - req_6sKr4ZCMxci5dZ
+      - req_6sZhbWk4d8MGea
       Stripe-Version:
       - '2015-08-19'
       Strict-Transport-Security:
@@ -58,9 +58,9 @@ http_interactions:
       encoding: UTF-8
       string: |
         {
-          "id": "ch_16eaBMLBlbbB1VNDb0ZPSUdG",
+          "id": "ch_16eoY4LBlbbB1VNDCFRzuDMh",
           "object": "charge",
-          "created": 1440719604,
+          "created": 1440774828,
           "livemode": false,
           "paid": true,
           "status": "succeeded",
@@ -68,7 +68,7 @@ http_interactions:
           "currency": "usd",
           "refunded": false,
           "source": {
-            "id": "card_16eaBLLBlbbB1VNDrSbsfstM",
+            "id": "card_16eoXzLBlbbB1VND6bkJJs1S",
             "object": "card",
             "last4": "4242",
             "brand": "Visa",
@@ -93,7 +93,7 @@ http_interactions:
             "customer": null
           },
           "captured": true,
-          "balance_transaction": "txn_16eaBMLBlbbB1VNDDm45PVao",
+          "balance_transaction": "txn_16eoY4LBlbbB1VNDfxLT4NEj",
           "failure_message": null,
           "failure_code": null,
           "amount_refunded": 0,
@@ -113,10 +113,10 @@ http_interactions:
             "object": "list",
             "total_count": 0,
             "has_more": false,
-            "url": "/v1/charges/ch_16eaBMLBlbbB1VNDb0ZPSUdG/refunds",
+            "url": "/v1/charges/ch_16eoY4LBlbbB1VNDCFRzuDMh/refunds",
             "data": []
           }
         }
     http_version: 
-  recorded_at: Thu, 27 Aug 2015 23:53:24 GMT
+  recorded_at: Fri, 28 Aug 2015 15:13:48 GMT
 recorded_with: VCR 2.9.3
