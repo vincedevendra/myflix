@@ -8,7 +8,6 @@ module StripeWrapper
     end
 
     def self.create(options={})
-      StripeWrapper.set_api_key
       begin
         response = Stripe::Charge.create(
           :amount => options[:amount],

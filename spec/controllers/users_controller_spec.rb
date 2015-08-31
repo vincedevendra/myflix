@@ -48,7 +48,7 @@ describe UsersController do
         end
 
         context "email sending" do
-          let(:subject) { ActionMailer::Base.deliveries.last }
+          subject { ActionMailer::Base.deliveries.last }
           before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), stripeToken: '111' }
 
           it "sends an email" do
@@ -138,11 +138,6 @@ describe UsersController do
       it "does not charge the card" do
         expect(StripeWrapper::Charge).not_to receive(:create)
         post :create, user: { email: '' }, stripeToken: '111'
-      end
-
-      it "sets a flash[:danger] message" do
-        post :create, user: { email: '' }, stripeToken: '111'
-        expect(flash[:danger]).to include("Please fix")
       end
     end
   end

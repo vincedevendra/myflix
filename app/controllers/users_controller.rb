@@ -22,7 +22,6 @@ class UsersController < ApplicationController
         render 'new'
       end
     else
-      flash.now[:danger] = "Please fix the following errors:"
       render 'new'
     end
   end

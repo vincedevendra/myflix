@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature "invitations", {js: true, vcr: true } do
+feature "invitations", :js, :vcr  do
   given!(:alice) { Fabricate(:user) }
 
   scenario "user invites a friend" do

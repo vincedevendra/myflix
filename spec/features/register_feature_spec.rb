@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature "user registers", { js: true, vcr: true } do
+feature "user registers", { js: true, driver: :selenium, vcr: true } do
   background { visit register_path }
 
   context "when user enters valid personal information" do

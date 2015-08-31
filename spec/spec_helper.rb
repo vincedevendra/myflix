@@ -23,7 +23,6 @@ end
 
 Capybara.server_port = 52662
 Capybara.javascript_driver = :webkit
-Capybara.default_wait_time = 15
 
 RSpec.configure do |config|
   config.fixture_path = "#{::Rails.root}/spec/fixtures"
