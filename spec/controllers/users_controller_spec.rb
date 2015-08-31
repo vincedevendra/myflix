@@ -1,3 +1,4 @@
+
 require 'spec_helper'
 
 describe UsersController do
@@ -32,74 +33,111 @@ describe UsersController do
   end
 
   describe 'POST create' do
-    context "user input clears validations" do
+    context "when user input clears validations" do
       after { ActionMailer::Base.deliveries.clear }
 
-      it "creates a new user object" do
-        post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
-        expect(User.count).to eq(1)
+      context "when card info is valid" do
+        before do
+          charge = double('charge', successful?: true)
+          allow(StripeWrapper::Charge).to receive(:create) { charge }
+        end
+
+        it "creates a new user object" do
+          post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), stripeToken: '111'
+          expect(User.count).to eq(1)
+        end
+
+        context "email sending" do
+          subject { ActionMailer::Base.deliveries.last }
+          before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), stripeToken: '111' }
+
+          it "sends an email" do
+            expect(subject).to be_truthy
+          end
+
+          it "sends an email to the correct user" do
+            user = User.find_by(full_name: "Pete")
+            expect(subject.to).to eq([user.email])
+          end
+
+          it "sends an email with the correct content" do
+            expect(subject.body).to include("Welcome to MyFlix")
+          end
+        end
+
+        context "when the user has followed an invitation link" do
+          let!(:alice) { Fabricate(:user) }
+          let(:invite) { Fabricate(:invite, user_id: alice.id) }
+          before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), invite_token: invite.token, stripeToken: '111' }
+
+          it "sets a following with the new user as the followee" do
+            pete = User.find_by(full_name: "Pete")
+            expect(alice.reload.followees).to include(pete)
+          end
+
+          it "sets a following with the inviter as the followee" do
+            pete = User.find_by(full_name: "Pete")
+            expect(pete.reload.followees).to include(alice)
+          end
+
+          it "clears the invitation token" do
+            expect(invite.reload.token).to be_nil
+          end
+        end
+
+        it "redirects to sign_in_path" do
+          post :create, user: Fabricate.attributes_for(:user), stripeToken: '111'
+          expect(response).to redirect_to sign_in_path
+        end
       end
 
-      context "email sending" do
-        let(:subject) { ActionMailer::Base.deliveries.last }
-        before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete") }
-
-        it "sends an email" do
-          expect(subject).to be_truthy
+      context "when card info is invalid" do
+        before do
+          charge = double('charge', successful?: false)
+          allow(charge).to receive(:error_message) { 'The card was declined.' }
+          allow(StripeWrapper::Charge).to receive(:create) { charge }
+          post :create, user: Fabricate.attributes_for(:user), stripeToken: '111'
         end
 
-        it "sends an email to the correct user" do
-          user = User.find_by(full_name: "Pete")
-          expect(subject.to).to eq([user.email])
+        it "does not save the user object"  do
+          expect(User.count).to eq(0)
         end
 
-        it "sends an email with the correct content" do
-          expect(subject.body).to include("Welcome to MyFlix")
-        end
-      end
-
-      context "when the user has followed an invitation link" do
-        let!(:alice) { Fabricate(:user) }
-        let(:invite) { Fabricate(:invite, user_id: alice.id) }
-        before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), invite_token: invite.token }
-
-        it "sets a following with the new user as the followee" do
-          pete = User.find_by(full_name: "Pete")
-          expect(alice.reload.followees).to include(pete)
+        it "sets a flash[:danger] message" do
+          expect(flash[:danger]).to eq('The card was declined.')
         end
 
-        it "sets a following with the inviter as the followee" do
-          pete = User.find_by(full_name: "Pete")
-          expect(pete.reload.followees).to include(alice)
+        it "renders :new template" do
+          expect(response).to render_template 'new'
         end
 
-        it "clears the invitation token" do
-          expect(invite.reload.token).to be_nil
+        it "does not send out an email" do
+          expect(ActionMailer::Base.deliveries).to be_empty
         end
-      end
-
-      it "redirects to sign_in_path" do
-        post :create, user: Fabricate.attributes_for(:user, full_name: "Pete")
-        expect(response).to redirect_to sign_in_path
       end
     end
 
-    context "user input fails validations" do
-      before do
-        post :create, user: { email: '' }
-      end
+    context "when user input fails validations" do
       after { ActionMailer::Base.deliveries.clear }
 
-      it "does not save the user object" do
+      it "does not save the user object"  do
+        post :create, user: { email: '' }, stripeToken: '111'
         expect(User.count).to eq(0)
       end
 
       it "renders :new template" do
+        post :create, user: { email: '' }, stripeToken: '111'
         expect(response).to render_template 'new'
       end
 
       it "does not send out an email" do
+        post :create, user: { email: '' }, stripeToken: '111'
         expect(ActionMailer::Base.deliveries).to be_empty
+      end
+
+      it "does not charge the card" do
+        expect(StripeWrapper::Charge).not_to receive(:create)
+        post :create, user: { email: '' }, stripeToken: '111'
       end
     end
   end
