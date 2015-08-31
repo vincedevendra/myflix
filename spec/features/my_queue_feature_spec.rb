@@ -2,38 +2,37 @@ require 'spec_helper'
 
 feature "My Queue" do
   scenario "user adds and reorders videos in the queue" do
-    pete = Fabricate(:user) 
-    category = Fabricate(:category) 
-    video_1 = Fabricate(:video, category: category) 
-    video_2 = Fabricate(:video, category: category) 
-    video_3 = Fabricate(:video, category: category) 
+    pete = Fabricate(:user)
+    category = Fabricate(:category)
+    video_1 = Fabricate(:video, category: category)
+    video_2 = Fabricate(:video, category: category)
+    video_3 = Fabricate(:video, category: category)
 
     sign_in_user(pete)
-    
+
     add_video_to_queue(video_1)
-    
+
     visit_queue_page
     expect_queue_to_have_video(video_1)
-    
+
     click_video_title_link_from_queue(video_1)
     expect_hide_add_link_show_remove_link
 
     add_video_to_queue(video_2)
     add_video_to_queue(video_3)
     visit_queue_page
+    expect_video_position(video_1, "1", pete)
+    expect_video_position(video_2, "2", pete)
+    expect_video_position(video_3, "3", pete)
 
-    expect_video_position(video_1, "1")
-    expect_video_position(video_2, "2")
-    expect_video_position(video_3, "3")
-
-    set_video_position(video_1, "3")
-    set_video_position(video_2, "1")
-    set_video_position(video_3, "2")
+    set_video_position(video_1, "3", pete)
+    set_video_position(video_2, "1", pete)
+    set_video_position(video_3, "2", pete)
     update_queue
 
-    expect_video_position(video_1, "3")
-    expect_video_position(video_2, "1")
-    expect_video_position(video_3, "2")
+    expect_video_position(video_1, "3", pete)
+    expect_video_position(video_2, "1", pete)
+    expect_video_position(video_3, "2", pete)
   end
 
   def add_video_to_queue(video)
@@ -41,13 +40,15 @@ feature "My Queue" do
     click_video_link(video)
     click_link "+ My Queue"
   end
-  
-  def expect_video_position(video, position)
-    expect(page).to have_field("queue_items_#{video.id}_position", with: position)
+
+  def expect_video_position(video, position, user)
+    queue_item = user.video_queue_item(video)
+    expect(page).to have_field("queue_items_#{queue_item.id}_position", with: position)
   end
 
-  def set_video_position(video, position)
-    fill_in "queue_items_#{video.id}_position", with: position
+  def set_video_position(video, position, user)
+    queue_item = user.video_queue_item(video)
+    fill_in "queue_items_#{queue_item.id}_position", with: position
   end
 
   def click_video_title_link_from_queue(video)
