@@ -80,7 +80,7 @@ describe Registration do
         end
 
         it "returns 'charge_failed'" do
-          expect(registration.register_user).to eq("charge_failed")
+          expect(registration.register_user).to eq("failure")
         end
       end
     end
@@ -105,8 +105,8 @@ describe Registration do
         registration.register_user
       end
 
-      it "returns 'user_invalid'" do
-        expect(registration.register_user).to eq("user_invalid")
+      it "returns 'failure'" do
+        expect(registration.register_user).to eq("failure")
       end
     end
   end

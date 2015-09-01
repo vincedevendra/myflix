@@ -17,11 +17,11 @@ class Registration
         AppMailer.send_welcome_email(user).deliver
         "success"
       else
-        error_message = charge.error_message
-        "charge_failed"
+        self.error_message = charge.error_message
+        "failure"
       end
     else
-      "user_invalid"
+      "failure"
     end
   end
 

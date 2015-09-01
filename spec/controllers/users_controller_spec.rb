@@ -33,24 +33,14 @@ describe UsersController do
   end
 
   describe 'POST create' do
-    let(:registration) { double('registration') }
-
-    it "receives the message :register_user" do
-      expect(registration).to receive(:register_user)
-      post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
-    end
-
     context "when user input is valid" do
       context "when credit card number is valid" do
-        # before do
-        #   allow(registration).to receive(:register_user) { "success" }
-        #   post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
-        # end
+        before do
+          allow_any_instance_of(Registration).to receive(:register_user) { "success" }
+          post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
+        end
 
         it "flashes a success message" do
-          allow(registration).to receive(:register_user) { "success" }
-          binding.pry
-          post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
           expect(flash[:success]).to be_present
         end
 
@@ -61,7 +51,8 @@ describe UsersController do
 
       context "when credit card number is invalid" do
         before do
-          allow(registration).to receive(:register_user) { "charge_failed" }
+          allow_any_instance_of(Registration).to receive(:register_user) { "failure" }
+          allow_any_instance_of(Registration).to receive(:error_message) { "card declined" }
           post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
         end
 
@@ -77,7 +68,8 @@ describe UsersController do
 
     context "when user input is invalid" do
       before do
-        allow(registration).to receive(:register_user) { "user_invalid" }
+        allow_any_instance_of(Registration).to receive(:register_user) { "failure" }
+        allow_any_instance_of(Registration).to receive(:error_message)
         post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
       end
 

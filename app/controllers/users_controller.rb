@@ -9,18 +9,15 @@ class UsersController < ApplicationController
 
   def create
     @user = User.new(user_params)
-    token = params[:stripeToken]
-    invite = find_invite
-    registration = Registration.new(@user, token, invite)
+    registration = Registration.new(@user, params[:stripeToken], find_invite)
 
     case registration.register_user
     when "success"
       flash[:success] = "You have successfully registered! Please sign in below."
       redirect_to sign_in_path
-    when "charge_failed"
-      flash.now[:danger] = registration.error_message
-      render 'new'
-    when "user_invalid"
+    when "failure"
+      error_message = registration.error_message
+      flash.now[:danger] = error_message if error_message
       render 'new'
     end
   end

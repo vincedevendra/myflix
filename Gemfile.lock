@@ -5,6 +5,13 @@ GIT
     sentry-raven (0.14.0)
       faraday (>= 0.7.6)
 
+GIT
+  remote: https://github.com/vincedevendra/rails-bootstrap-forms.git
+  revision: 691758068d08017ace8076728aea746eb7af8b18
+  branch: master
+  specs:
+    bootstrap_form (2.3.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -49,7 +56,6 @@ GEM
       debug_inspector (>= 0.0.1)
     bootstrap-sass (3.1.1.1)
       sass (~> 3.2)
-    bootstrap_form (2.3.0)
     builder (3.2.2)
     capybara (2.4.4)
       mime-types (>= 1.16)
@@ -272,7 +278,7 @@ DEPENDENCIES
   better_errors
   binding_of_caller
   bootstrap-sass
-  bootstrap_form
+  bootstrap_form!
   capybara
   capybara-email
   capybara-webkit
