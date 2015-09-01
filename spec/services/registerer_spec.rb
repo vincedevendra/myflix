@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Registration do
+describe Registerer do
   describe '#register_user' do
     context "when user is valid" do
       let(:user) { User.new(Fabricate.attributes_for(:user)) }
@@ -13,20 +13,26 @@ describe Registration do
         end
 
         it "creates a new user object" do
-          registration = Registration.new(user, '111')
-          registration.register_user
+          registerer = Registerer.new(user, '111')
+          registerer.register_user
           expect(User.count).to eq(1)
         end
 
+        it "charges the card" do
+          registerer = Registerer.new(user, '111')
+          expect(StripeWrapper::Charge).to receive(:create)
+          registerer.register_user
+        end
+
         it "returns 'success'" do
-          registration = Registration.new(user, '111')
-          expect(registration.register_user).to eq("success")
+          registerer = Registerer.new(user, '111')
+          expect(registerer.register_user).to eq("success")
         end
 
         context "email sending" do
           let(:subject) { ActionMailer::Base.deliveries.last }
-          let(:registration) { Registration.new(user, '111') }
-          before { registration.register_user }
+          let(:registerer) { Registerer.new(user, '111') }
+          before { registerer.register_user }
 
           it "sends an email" do
             expect(subject).to be_truthy
@@ -44,8 +50,8 @@ describe Registration do
         context "when the user has followed an invitation link" do
           let!(:alice) { Fabricate(:user) }
           let(:invite) { Fabricate(:invite, user_id: alice.id) }
-          let(:registration) { Registration.new(user, '111', invite) }
-          before { registration.register_user }
+          let(:registerer) { Registerer.new(user, '111', invite) }
+          before { registerer.register_user }
 
           it "sets a following with the new user as the followee" do
             expect(alice.reload.followees).to include(user)
@@ -62,7 +68,7 @@ describe Registration do
       end
 
       context "when card info is invalid" do
-        let(:registration) { Registration.new(user, '111') }
+        let(:registerer) { Registerer.new(user, '111') }
         before do
           charge = double('charge', successful?: false)
           allow(charge).to receive(:error_message) { 'The card was declined.' }
@@ -70,43 +76,43 @@ describe Registration do
         end
 
         it "does not save the user object"  do
-          registration.register_user
+          registerer.register_user
           expect(User.count).to eq(0)
         end
 
         it "does not send out an email" do
-          registration.register_user
+          registerer.register_user
           expect(ActionMailer::Base.deliveries).to be_empty
         end
 
         it "returns 'charge_failed'" do
-          expect(registration.register_user).to eq("failure")
+          expect(registerer.register_user).to eq("failure")
         end
       end
     end
 
     context "when user is invalid" do
       let(:user) { User.new(Fabricate.attributes_for(:user, email: ' ')) }
-      let(:registration) { Registration.new(user, '111') }
+      let(:registerer) { Registerer.new(user, '111') }
       after { ActionMailer::Base.deliveries.clear }
 
       it "does not save the user object"  do
-        registration.register_user
+        registerer.register_user
         expect(User.count).to eq(0)
       end
 
       it "does not send out an email" do
-        registration.register_user
+        registerer.register_user
         expect(ActionMailer::Base.deliveries).to be_empty
       end
 
       it "does not charge the card" do
         expect(StripeWrapper::Charge).not_to receive(:create)
-        registration.register_user
+        registerer.register_user
       end
 
       it "returns 'failure'" do
-        expect(registration.register_user).to eq("failure")
+        expect(registerer.register_user).to eq("failure")
       end
     end
   end

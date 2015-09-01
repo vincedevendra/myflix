@@ -36,7 +36,7 @@ describe UsersController do
     context "when user input is valid" do
       context "when credit card number is valid" do
         before do
-          allow_any_instance_of(Registration).to receive(:register_user) { "success" }
+          allow_any_instance_of(Registerer).to receive(:register_user) { "success" }
           post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
         end
 
@@ -51,8 +51,8 @@ describe UsersController do
 
       context "when credit card number is invalid" do
         before do
-          allow_any_instance_of(Registration).to receive(:register_user) { "failure" }
-          allow_any_instance_of(Registration).to receive(:error_message) { "card declined" }
+          allow_any_instance_of(Registerer).to receive(:register_user) { "failure" }
+          allow_any_instance_of(Registerer).to receive(:error_message) { "card declined" }
           post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
         end
 
@@ -68,8 +68,8 @@ describe UsersController do
 
     context "when user input is invalid" do
       before do
-        allow_any_instance_of(Registration).to receive(:register_user) { "failure" }
-        allow_any_instance_of(Registration).to receive(:error_message)
+        allow_any_instance_of(Registerer).to receive(:register_user) { "failure" }
+        allow_any_instance_of(Registerer).to receive(:error_message)
         post :create, user: Fabricate.attributes_for(:user), stripeToken: '111', invite_token: 'asdf'
       end
 

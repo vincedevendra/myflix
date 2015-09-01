@@ -1,4 +1,4 @@
-class Registration
+class Registerer
   attr_reader :user, :stripe_token, :invite
   attr_accessor :error_message
 
