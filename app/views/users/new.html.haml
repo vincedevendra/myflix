@@ -20,14 +20,8 @@
         %fieldset.credit_card
           .alert.alert-danger.payment-alert.hidden
             %span.payment-errors
-          .form-group
-            %label.control-label.col-sm-2(for='cc-number') Credit Card Number
-            .col-sm-6
-              %input.form-control(id='cc-number' type="text" data-stripe="number")
-          .form-group
-            %label.control-label.col-sm-2(for='sec-code') Security Code
-            .col-sm-6
-              %input.form-control(id='sec-code' type="text" data-stripe="cvc")
+          = f.text_field :cc_number, tag: true, label: "Credit Card Number", data: { stripe: 'number' }
+          = f.text_field :sec_code, tag: true, label: "Security Code", data: { stripe: 'cvc' }
           .form-group
             %label.control-label.col-sm-2 Expiration
             .col-sm-3
