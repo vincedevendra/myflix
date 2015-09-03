@@ -24,9 +24,10 @@ describe Registerer do
           registerer.register_user
         end
 
-        it "returns 'success'" do
+        it "sets the status of the registerer object to :success" do
           registerer = Registerer.new(user, '111')
-          expect(registerer.register_user).to eq("success")
+          registerer.register_user
+          expect(registerer.status).to eq (:success)
         end
 
         context "email sending" do
@@ -69,24 +70,28 @@ describe Registerer do
 
       context "when card info is invalid" do
         let(:registerer) { Registerer.new(user, '111') }
+        
         before do
           charge = double('charge', successful?: false)
           allow(charge).to receive(:error_message) { 'The card was declined.' }
           allow(StripeWrapper::Charge).to receive(:create) { charge }
+          registerer.register_user
         end
 
         it "does not save the user object"  do
-          registerer.register_user
           expect(User.count).to eq(0)
         end
 
         it "does not send out an email" do
-          registerer.register_user
           expect(ActionMailer::Base.deliveries).to be_empty
         end
 
-        it "returns 'charge_failed'" do
-          expect(registerer.register_user).to eq("failure")
+        it "does not set the status of the registerer object to :success" do
+          expect(registerer.status).to be_nil
+        end
+
+        it "sets an error message on the registerer object" do
+          expect(registerer.error_message).to eq('The card was declined.')
         end
       end
     end
@@ -111,9 +116,25 @@ describe Registerer do
         registerer.register_user
       end
 
-      it "returns 'failure'" do
-        expect(registerer.register_user).to eq("failure")
+      it "does not set the status of the registerer object to :success" do
+        registerer = Registerer.new(user, '111')
+        registerer.register_user
+        expect(registerer.status).to be_nil
       end
+    end
+  end
+
+  describe "#successful?" do
+    let(:user) { Fabricate(:user) }
+    let(:registerer) { Registerer.new(user, '111')}
+
+    it "returns true if the status of registerer object is :success" do
+      registerer.status = :success
+      expect(registerer.successful?).to be_truthy
+    end
+
+    it "returns false if the status of registerer is not set" do
+      expect(registerer.successful?).to be_falsy
     end
   end
 end

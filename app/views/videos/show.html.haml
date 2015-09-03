@@ -10,7 +10,7 @@
         %p= @video.description
         .actions
           = link_to "Watch Now", @video.video_url, class: 'btn btn-primary'
-          = @video.add_or_remove_from_queue_button(current_user)
+          = add_or_remove_from_queue_button(current_user, @video)
 
 %section.reviews.container
   .row

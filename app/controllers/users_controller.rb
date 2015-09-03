@@ -10,20 +10,20 @@ class UsersController < ApplicationController
   def create
     @user = User.new(user_params)
     registerer = Registerer.new(@user, params[:stripeToken], find_invite)
+    registration = registerer.register_user
 
-    case registerer.register_user
-    when "success"
+    if registration.successful?
       flash[:success] = "You have successfully registered! Please sign in below."
       redirect_to sign_in_path
-    when "failure"
-      error_message = registerer.error_message
+    else
+      error_message = registration.error_message
       flash.now[:danger] = error_message if error_message
       render 'new'
     end
   end
 
   def show
-    @user = User.find(params[:id]).decorate
+    @user = User.find(params[:id])
     @queue_items = @user.queue_items
     @reviews = @user.reviews
   end

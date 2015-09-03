@@ -5,7 +5,7 @@
         %header
           =image_tag gravatar_for(@user)
           %h2 Videos in #{@user.full_name}'s Queue (#{@queue_items.count})
-          = @user.follow_or_unfollow_button(current_user)
+          = follow_or_unfollow_button(current_user, @user)
         - if @queue_items.any?
           %table.table
             %thead

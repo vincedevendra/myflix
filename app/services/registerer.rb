@@ -1,6 +1,6 @@
 class Registerer
   attr_reader :user, :stripe_token, :invite
-  attr_accessor :error_message
+  attr_accessor :error_message, :status
 
   def initialize(user, stripe_token, invite=nil)
     @user = user
@@ -15,16 +15,21 @@ class Registerer
         user.save
         handle_invite_behavior_create(invite)
         AppMailer.send_welcome_email(user).deliver
-        "success"
+        self.status = :success
+        self
       else
         self.error_message = charge.error_message
-        "failure"
+        self
       end
-    else
-      "failure"
     end
+    self
   end
 
+  def successful?
+    status == :success
+  end
+
+  private
   def handle_stripe_charge(stripe_token)
     charge = StripeWrapper::Charge.create(
       amount: 999,
