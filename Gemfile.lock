@@ -5,6 +5,13 @@ GIT
     sentry-raven (0.14.0)
       faraday (>= 0.7.6)
 
+GIT
+  remote: https://github.com/vincedevendra/rails-bootstrap-forms.git
+  revision: 691758068d08017ace8076728aea746eb7af8b18
+  branch: master
+  specs:
+    bootstrap_form (2.3.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -49,7 +56,6 @@ GEM
       debug_inspector (>= 0.0.1)
     bootstrap-sass (3.1.1.1)
       sass (~> 3.2)
-    bootstrap_form (2.3.0)
     builder (3.2.2)
     capybara (2.4.4)
       mime-types (>= 1.16)
@@ -92,6 +98,11 @@ GEM
     diff-lcs (1.2.5)
     domain_name (0.5.24)
       unf (>= 0.0.5, < 1.0.0)
+    draper (2.1.0)
+      actionpack (>= 3.0)
+      activemodel (>= 3.0)
+      activesupport (>= 3.0)
+      request_store (~> 1.0)
     erubis (2.7.0)
     eventmachine (1.0.0)
     execjs (2.0.2)
@@ -173,6 +184,7 @@ GEM
     redis (3.2.1)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
+    request_store (1.2.0)
     rest-client (1.8.0)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
@@ -266,7 +278,7 @@ DEPENDENCIES
   better_errors
   binding_of_caller
   bootstrap-sass
-  bootstrap_form
+  bootstrap_form!
   capybara
   capybara-email
   capybara-webkit
@@ -274,6 +286,7 @@ DEPENDENCIES
   carrierwave-aws
   coffee-rails
   database_cleaner (= 1.2.0)
+  draper
   fabrication
   faker
   figaro

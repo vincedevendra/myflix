@@ -5,12 +5,8 @@
         %header
           =image_tag gravatar_for(@user)
           %h2 Videos in #{@user.full_name}'s Queue (#{@queue_items.count})
-          - unless current_user == @user
-            - if current_user.follows?(@user)
-              = link_to "Unfollow", following_path(current_user.following_with(@user)), method: :delete, class: 'btn btn-default pull-right'
-            - else
-              = link_to "Follow", followings_path(followee_id: @user.id), method: :post, class: 'btn btn-default pull-right' 
-        - if @queue_items.any?  
+          = follow_or_unfollow_button(current_user, @user)
+        - if @queue_items.any?
           %table.table
             %thead
               %tr
@@ -24,7 +20,7 @@
                   %td
                     = link_to queue_item.category_title, queue_item.category
         - else
-          %h3 #{@user.full_name} doesn't have any videos queued.            
+          %h3 #{@user.full_name} doesn't have any videos queued.
 
 %section.user_reviews.container
   .row
