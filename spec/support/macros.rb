@@ -42,10 +42,10 @@ end
 def generate_stripe_token
   Stripe::Token.create(
     :card => {
-    :number => card_number,
-    :exp_month => 8,
-    :exp_year => 2016,
-    :cvc => "314"
+      :number => card_number,
+      :exp_month => 8,
+      :exp_year => 2016,
+      :cvc => "314"
     },
   ).id
 end

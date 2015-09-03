@@ -47,6 +47,44 @@ describe UsersController do
         it "redirects to the sign in path" do
           expect(response).to redirect_to sign_in_path
         end
+
+        context "email sending" do
+          subject { ActionMailer::Base.deliveries.last }
+          before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), stripeToken: '111' }
+
+          it "sends an email" do
+            expect(subject).to be_truthy
+          end
+
+          it "sends an email to the correct user" do
+            user = User.find_by(full_name: "Pete")
+            expect(subject.to).to eq([user.email])
+          end
+
+          it "sends an email with the correct content" do
+            expect(subject.body).to include("Welcome to MyFlix")
+          end
+        end
+
+        context "when the user has followed an invitation link" do
+          let!(:alice) { Fabricate(:user) }
+          let(:invite) { Fabricate(:invite, user_id: alice.id) }
+          before { post :create, user: Fabricate.attributes_for(:user, full_name: "Pete"), invite_token: invite.token, stripeToken: '111' }
+
+          it "sets a following with the new user as the followee" do
+            pete = User.find_by(full_name: "Pete")
+            expect(alice.reload.followees).to include(pete)
+          end
+
+          it "sets a following with the inviter as the followee" do
+            pete = User.find_by(full_name: "Pete")
+            expect(pete.reload.followees).to include(alice)
+          end
+
+          it "clears the invitation token" do
+            expect(invite.reload.token).to be_nil
+          end
+        end
       end
 
       context "when credit card number is invalid" do
@@ -78,6 +116,16 @@ describe UsersController do
 
       it "renders the 'new' template" do
         expect(response).to render_template 'new'
+      end
+
+      it "does not send out an email" do
+        post :create, user: { email: '' }, stripeToken: '111'
+        expect(ActionMailer::Base.deliveries).to be_empty
+      end
+
+      it "does not charge the card" do
+        expect(StripeWrapper::Charge).not_to receive(:create)
+        post :create, user: { email: '' }, stripeToken: '111'
       end
     end
   end
