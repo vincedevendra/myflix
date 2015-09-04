@@ -8,8 +8,8 @@ describe Registerer do
 
       context "when card info is valid" do
         before do
-          charge = double('charge', successful?: true)
-          allow(StripeWrapper::Charge).to receive(:create) { charge }
+          customer_creation = double('customer_creation', successful?: true, id: 'customer1')
+          allow(StripeWrapper::Customer).to receive(:create) { customer_creation }
         end
 
         it "creates a new user object" do
@@ -18,9 +18,9 @@ describe Registerer do
           expect(User.count).to eq(1)
         end
 
-        it "charges the card" do
+        it "subscribes the user" do
           registerer = Registerer.new(user, '111')
-          expect(StripeWrapper::Charge).to receive(:create)
+          expect(StripeWrapper::Customer).to receive(:create)
           registerer.register_user
         end
 
@@ -28,6 +28,12 @@ describe Registerer do
           registerer = Registerer.new(user, '111')
           registerer.register_user
           expect(registerer.status).to eq (:success)
+        end
+
+        it "saves the stripe customer id on the user" do
+          registerer = Registerer.new(user, '111')
+          registerer.register_user
+          expect(user.reload.stripe_customer_id).to eq('customer1')
         end
 
         context "email sending" do
@@ -70,11 +76,11 @@ describe Registerer do
 
       context "when card info is invalid" do
         let(:registerer) { Registerer.new(user, '111') }
-        
+
         before do
-          charge = double('charge', successful?: false)
-          allow(charge).to receive(:error_message) { 'The card was declined.' }
-          allow(StripeWrapper::Charge).to receive(:create) { charge }
+          customer_creation = double('customer_creation', successful?: false)
+          allow(customer_creation).to receive(:error_message) { 'The card was declined.' }
+          allow(StripeWrapper::Customer).to receive(:create) { customer_creation }
           registerer.register_user
         end
 
@@ -111,8 +117,8 @@ describe Registerer do
         expect(ActionMailer::Base.deliveries).to be_empty
       end
 
-      it "does not charge the card" do
-        expect(StripeWrapper::Charge).not_to receive(:create)
+      it "does not create the customer" do
+        expect(StripeWrapper::Customer).not_to receive(:create)
         registerer.register_user
       end
 

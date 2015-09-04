@@ -1,27 +1,26 @@
 require 'spec_helper'
 
-describe StripeWrapper::Charge do
+describe StripeWrapper::Customer do
   describe ".create", :vcr do
     let(:token) { generate_stripe_token }
 
-    subject(:charge) do
-      StripeWrapper::Charge.create(
-        amount: 999,
+    subject(:customer_creation) do
+      StripeWrapper::Customer.create(
         token: token,
-        description: 'hey'
+        email: 'foo@bar.org'
       )
     end
 
     context "when card is valid" do
       let(:card_number) { '4242424242424242' }
 
-      it "succesfully charges the card" do
-        expect(charge.status).to eq(:success)
+      it "succesfully creates the customer" do
+        expect(customer_creation).to be_successful
       end
 
-      describe "successful?" do
-        it "returns true if the charge is successful" do
-          expect(charge.successful?).to eq(true)
+      describe "#id" do
+        it "returns the customer id" do
+          expect(customer_creation.id).to be_an_instance_of(String)
         end
       end
     end
@@ -29,23 +28,17 @@ describe StripeWrapper::Charge do
     context "when card is invalid" do
       let(:card_number) { '4000000000000002'}
 
-      it "does not charge the card" do
-        expect(charge.status).to eq(:error)
+      it "does not create the customer" do
+        expect(customer_creation).not_to be_successful
       end
 
       it "contains an error message" do
-        expect(charge.response.message).to be_present
-      end
-
-      describe "successful?" do
-        it "returns true if the charge is successful" do
-          expect(charge.successful?).to eq(false)
-        end
+        expect(customer_creation.response.message).to be_an_instance_of(String)
       end
 
       describe "error_message" do
         it "should return an error message when a charge is declined" do
-          expect(charge.error_message).to be_an_instance_of(String)
+          expect(customer_creation.error_message).to be_an_instance_of(String)
         end
       end
     end

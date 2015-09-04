@@ -80,8 +80,8 @@ describe UsersController do
         expect(response).to render_template 'new'
       end
 
-      it "does not charge the card" do
-        expect(StripeWrapper::Charge).not_to receive(:create)
+      it "does not create a stripe customer" do
+        expect(StripeWrapper::Customer).not_to receive(:create)
         post :create, user: { email: '' }, stripeToken: '111'
       end
     end
