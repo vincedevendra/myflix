@@ -1,26 +1,22 @@
-module StripeWrapper
+class StripeWrapper
+  attr_reader :status, :response
+  delegate :id, to: :@response
+  delegate :message, to: :@response, prefix: :error
+
+  def initialize(response, status)
+    @response = response
+    @status = status
+  end
+
+  def successful?
+    status == :success
+  end
+
   def self.set_api_key
     Stripe.api_key = ENV.fetch('STRIPE_API_KEY')
   end
 
-  module Buildable
-    attr_reader :status, :response
-    delegate :id, to: :@response
-    delegate :message, to: :@response, prefix: :error
-
-    def initialize(response, status)
-      @response = response
-      @status = status
-    end
-
-    def successful?
-      status == :success
-    end
-  end
-
-  class Customer
-    include StripeWrapper::Buildable
-
+  class Customer < StripeWrapper
     def self.create(options={})
       begin
         customer = Stripe::Customer.create(
@@ -39,9 +35,7 @@ module StripeWrapper
     end
   end
 
-  class Card
-    include StripeWrapper::Buildable
-
+  class Card < StripeWrapper
     def self.default(user)
       customer = StripeWrapper::Customer.retrieve(user)
       default_card_id = customer.default_source
