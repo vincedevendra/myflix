@@ -27,7 +27,7 @@ module ApplicationHelper
   end
 
   def display_last_4(card)
-    "****-****-****-#{card.last4}"
+    "************#{card.last4}"
   end
 
   def display_expiration_date(card)
@@ -40,5 +40,9 @@ module ApplicationHelper
 
   def name_value
     @invite_name ? @invite_name : @user.full_name
+  end
+
+  def account_details_link
+    link_to "update your payment method", account_details_path
   end
 end
