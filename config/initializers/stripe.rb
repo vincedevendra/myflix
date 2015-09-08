@@ -9,7 +9,7 @@ StripeEvent.configure do |events|
 
   events.subscribe "charge.failed" do |event|
     user = User.find_by(stripe_customer_id: event.data.object.customer)
-    # user.update_attribute(:delinquent, true)
+    user.update_attribute(:delinquent, true)
     failure_message = event.data.object.failure_message
     AppMailer.send_failed_payment_email(user, failure_message).deliver
   end
@@ -19,6 +19,5 @@ StripeEvent.configure do |events|
     amount = event.data.object.amount
     id = event.data.object.id
     Payment.create(user: user, amount: amount, token: id)
-    user.update_attribute(:valid_subscription, true) unless user.valid_subscription
   end
 end

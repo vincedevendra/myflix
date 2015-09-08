@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
 
   before_action :require_user
   before_action :require_valid_subscription
+  before_action :flash_delinquent_warning
 
   helper_method [:logged_in?, :current_user]
 
@@ -31,7 +32,13 @@ class ApplicationController < ActionController::Base
   def require_valid_subscription
     unless logged_in? && (current_user.valid_subscription? || current_user.admin?)
       flash[:danger] = "Your subscription has been cancelled.  Please update your credit card details to resubscribe to myflix."
-      redirect_to account_details_path
+      redirect_to account_details_path unless request.path == '/account_details'
+    end
+  end
+
+  def flash_delinquent_warning
+    if logged_in? && current_user.delinquent? && current_user.valid_subscription
+      flash[:warning] = "You recently had a failed payment.  In order to avoid interruptions in your Myflix service, please <a href='/account_details'>update your payment method</a>".html_safe
     end
   end
 

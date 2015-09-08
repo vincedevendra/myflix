@@ -181,12 +181,18 @@ describe "stripe events handling", :vcr do
       }
     end
 
+    let!(:user) { Fabricate(:user, stripe_customer_id: "cus_6uxmf5e2oiEVNI", email: 'foo@bar.com') }
+
+    before { post '/stripe_events', stripe_event }
+
     it "sends a warning email to the customer" do
-      user = Fabricate(:user, stripe_customer_id: "cus_6uxmf5e2oiEVNI", email: 'foo@bar.com')
-      post '/stripe_events', stripe_event
       expect(ActionMailer::Base.deliveries.last.to).to eq(["foo@bar.com"])
       expect(ActionMailer::Base.deliveries.last.body).to include("Your card was declined.")
       ActionMailer::Base.deliveries.clear
+    end
+
+    it "sets user to delinquent" do
+      expect(user.reload).to be_delinquent
     end
   end
 

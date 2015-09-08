@@ -18,7 +18,7 @@ class User < ActiveRecord::Base
   before_create :default_values
 
   def default_values
-    # self.account_delinquent = false
+    self.delinquent = false
     self.valid_subscription = true
   end
 

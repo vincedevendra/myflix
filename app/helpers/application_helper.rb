@@ -33,4 +33,12 @@ module ApplicationHelper
   def display_expiration_date(card)
     "#{card.exp_month}/#{card.exp_year}"
   end
+
+  def email_value
+    @invite_email ? @invite_email : @user.email
+  end
+
+  def name_value
+    @invite_name ? @invite_name : @user.full_name
+  end
 end

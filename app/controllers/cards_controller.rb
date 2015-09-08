@@ -1,5 +1,6 @@
 class CardsController < ApplicationController
   skip_before_action :require_valid_subscription
+  skip_before_action :flash_delinquent_warning
 
   def create
     token = params[:stripeToken]
@@ -15,6 +16,14 @@ class CardsController < ApplicationController
       flash[:danger] = card_creation.error_message
     end
 
+    reactivate_account
+
     redirect_to new_card_path
+  end
+
+  private
+  def reactivate_account
+    current_user.update_attribute(:valid_subscription, true) unless current_user.valid_subscription?
+    current_user.update_attribute(:delinquent, false) if current_user.delinquent?
   end
 end

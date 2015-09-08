@@ -1,6 +1,7 @@
 class UsersController < ApplicationController
   skip_before_action :require_user, except: [:show]
   skip_before_action :require_valid_subscription, except: [:show]
+  skip_before_action :flash_delinquent_warning, only: :edit
   before_action :redirect_when_logged_in, except: [:show, :edit, :update]
   before_action :set_user, only: [:show, :update]
   before_action :set_card, only: [:edit, :update]

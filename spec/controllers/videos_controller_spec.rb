@@ -1,6 +1,12 @@
 require 'spec_helper'
 
 describe VideosController do
+  describe 'GET index' do
+    it_behaves_like "no valid subscription redirect" do
+      let(:action) { get :index }
+    end
+  end
+
   describe 'GET show' do
     let(:video) { Fabricate(:video) }
     before { set_current_user }
