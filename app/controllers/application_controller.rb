@@ -38,7 +38,7 @@ class ApplicationController < ActionController::Base
 
   def flash_delinquent_warning
     if logged_in? && current_user.delinquent? && current_user.valid_subscription
-      flash[:warning] = "You recently had a failed payment.  In order to avoid interruptions in your Myflix service, please #{view_context.link_to "udpate your payment method", account_details_path}".html_safe
+      flash[:warning] = "You recently had a failed payment.  In order to avoid interruptions in your Myflix service, please #{view_context.link_to "update your payment method", account_details_path}".html_safe
     end
   end
 

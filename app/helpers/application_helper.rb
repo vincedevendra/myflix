@@ -41,8 +41,4 @@ module ApplicationHelper
   def name_value
     @invite_name ? @invite_name : @user.full_name
   end
-
-  def account_details_link
-    link_to "update your payment method", account_details_path
-  end
 end
