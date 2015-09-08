@@ -6,7 +6,7 @@ describe Admin::PaymentsController do
       2.times { Fabricate(:payment) }
       set_admin
       get :index
-      expect(assigns(:payments)).to be_present
+      expect(assigns(:payments).count).to eq(2)
     end
 
     it_behaves_like "no admin redirect" do
