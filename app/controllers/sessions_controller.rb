@@ -1,5 +1,6 @@
 class SessionsController < ApplicationController
   skip_before_action :require_user
+  skip_before_action :require_valid_subscription
   before_action :redirect_when_logged_in, only: :new
 
   def create

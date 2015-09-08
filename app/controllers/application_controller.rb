@@ -2,6 +2,7 @@ class ApplicationController < ActionController::Base
   protect_from_forgery
 
   before_action :require_user
+  before_action :require_valid_subscription
 
   helper_method [:logged_in?, :current_user]
 
@@ -24,6 +25,13 @@ class ApplicationController < ActionController::Base
     if logged_in?
       flash[:warning] = "You are already signed in."
       redirect_to root_path
+    end
+  end
+
+  def require_valid_subscription
+    unless logged_in? && (current_user.valid_subscription? || current_user.admin?)
+      flash[:danger] = "Your subscription has been cancelled.  Please update your credit card details to resubscribe to myflix."
+      redirect_to account_details_path
     end
   end
 

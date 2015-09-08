@@ -118,8 +118,57 @@ describe UsersController do
       expect(assigns(:reviews)).to eq([review_2, review])
     end
 
-    it_behaves_like "no_current_user_redirect" do
+    it_behaves_like "no valid subscription redirect" do
       let(:action) { get :show, id: 3 }
+    end
+  end
+
+  describe "GET edit" do
+    it "sets @card as the current user's current form of payment" do
+      card = double('card')
+      allow(StripeWrapper::Card).to receive(:default).with(@user) { card }
+      get :edit
+      expect(assigns(:card)).to eq(card)
+    end
+  end
+
+  describe "PATCH update" do
+    let(:user) { Fabricate(:user, email: 'bar@foo.com') }
+    before do
+      card = double('card', last4: '1111', exp_month: '12', exp_year: '2015')
+      allow(StripeWrapper::Card).to receive(:default) { card }
+    end
+
+    context "when user input passes validations" do
+      before do
+         patch :update, id: user.id, user: { email: 'foo@bar.com', password: 'foo', password_confirmation: 'foo' }
+      end
+
+      it "updates the customer info" do
+        expect(user.reload.email).to eq("foo@bar.com")
+      end
+
+      it "flashes a success message" do
+        expect(flash[:success]).to be_present
+      end
+
+      it "redirects to the account details path" do
+        expect(response).to redirect_to account_details_path
+      end
+    end
+
+    context "when user input fails validations" do
+      before do
+         patch :update, id: user.id, user: { email: 'foo@bar.com', password: 'foo', password_confirmation: 'bar' }
+      end
+
+      it "does not update the customer" do
+        expect(user.reload.email).to eq("bar@foo.com")
+      end
+
+      it "renders the edit template" do
+        expect(response).to render_template 'edit'
+      end
     end
   end
 end

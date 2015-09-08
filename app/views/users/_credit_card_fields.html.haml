@@ -1,0 +1,11 @@
+%fieldset.credit_card
+  .alert.alert-danger.payment-alert.hidden
+    %span.payment-errors
+  = f.text_field :cc_number, tag: true, label: "Credit Card Number", data: { stripe: 'number' }
+  = f.text_field :sec_code, tag: true, label: "Security Code", data: { stripe: 'cvc' }
+  .form-group
+    %label.control-label.col-sm-2 Expiration
+    .col-sm-3
+      = select_month(Date.today, {add_month_numbers: true}, name: nil,  class: 'form-control', "data-stripe" => "exp-month", id: 'exp-month')
+    .col-sm-2
+      = select_year(Date.today.year, {start_year: Date.today.year, end_year: Date.today.year + 4}, name: nil, class: 'form-control', "data-stripe" => "exp-year", id: 'exp-year')

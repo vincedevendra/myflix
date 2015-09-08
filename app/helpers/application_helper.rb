@@ -25,4 +25,12 @@ module ApplicationHelper
       link_to 'X Remove From Queue', queue_item_path(user.video_queue_item(video)), method: :delete, class: 'btn btn-default', id: 'remove-button'
     end
   end
+
+  def display_last_4(card)
+    "****-****-****-#{card.last4}"
+  end
+
+  def display_expiration_date(card)
+    "#{card.exp_month}/#{card.exp_year}"
+  end
 end
