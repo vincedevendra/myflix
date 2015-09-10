@@ -37,9 +37,11 @@ class StripeWrapper
 
   class Card < StripeWrapper
     def self.default(user)
-      customer = StripeWrapper::Customer.retrieve(user)
-      default_card_id = customer.default_source
-      customer.sources.retrieve(default_card_id)
+      if user.stripe_customer_id
+        customer = StripeWrapper::Customer.retrieve(user)
+        default_card_id = customer.default_source
+        customer.sources.retrieve(default_card_id)
+      end
     end
 
     def self.update_current_card(options={})

@@ -19,7 +19,7 @@ describe StripeWrapper::Customer do
       end
 
       describe "#id" do
-        it "returns the customer id" do
+        it "returns a string containing the customer id" do
           expect(customer_creation.id).to be_an_instance_of(String)
         end
       end
@@ -70,9 +70,10 @@ describe StripeWrapper::Card do
       end
 
       it "deletes the customer's old card" do
-        card_creation = StripeWrapper::Card.create(user: user, token: token)
+        old_card = StripeWrapper::Card.default(user)
+        StripeWrapper::Card.create(user: user, token: token)
         customer = StripeWrapper::Customer.retrieve(user)
-        expect(customer.sources.total_count).to eq(1)
+        expect(customer.sources.data).not_to include(old_card)
       end
 
       it "sets the new card as the user's default card", :vcr do
