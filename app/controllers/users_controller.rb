@@ -1,6 +1,10 @@
 class UsersController < ApplicationController
   skip_before_action :require_user, except: [:show]
-  before_action :redirect_when_logged_in, except: [:show]
+  skip_before_action :require_valid_subscription, except: [:show]
+  skip_before_action :flash_delinquent_warning, only: :edit
+  before_action :redirect_when_logged_in, except: [:show, :edit, :update]
+  before_action :set_user, only: [:show, :update]
+  before_action :set_card, only: [:edit, :update]
 
   def new
     @user = User.new
@@ -23,9 +27,21 @@ class UsersController < ApplicationController
   end
 
   def show
-    @user = User.find(params[:id])
     @queue_items = @user.queue_items
     @reviews = @user.reviews
+  end
+
+  def edit
+    @user = current_user
+  end
+
+  def update
+    if @user.update(user_params)
+      flash[:success] = "Your account information has been updated."
+      redirect_to account_details_path
+    else
+      render 'edit'
+    end
   end
 
   private
@@ -44,5 +60,13 @@ class UsersController < ApplicationController
 
     def find_invite
       Invite.find_by(token: params[:invite_token])
+    end
+
+    def set_user
+      @user = User.find(params[:id])
+    end
+
+    def set_card
+      @card = StripeWrapper::Card.default(current_user)
     end
 end

@@ -10,15 +10,16 @@ class Registerer
 
   def register_user
     if user.valid?
-      charge = handle_stripe_charge(stripe_token)
-      if charge.successful?
+      customer_creation = create_stripe_customer(stripe_token)
+      if customer_creation.successful?
+        user.stripe_customer_id = customer_creation.id
         user.save
         handle_invite_behavior_create(invite)
         AppMailer.send_welcome_email(user).deliver
         self.status = :success
         self
       else
-        self.error_message = charge.error_message
+        self.error_message = customer_creation.error_message
         self
       end
     end
@@ -30,11 +31,10 @@ class Registerer
   end
 
   private
-  def handle_stripe_charge(stripe_token)
-    charge = StripeWrapper::Charge.create(
-      amount: 999,
+  def create_stripe_customer(stripe_token)
+    StripeWrapper::Customer.create(
       token: stripe_token,
-      description: "1st month of service for #{@user.full_name}"
+      email: user.email
     )
   end
 

@@ -1,30 +1,35 @@
 require 'spec_helper'
 
 describe QueueItemsController do
-  before do 
-    set_current_user 
-    request.env['HTTP_REFERER'] = "from_whence_I_came"
-  end
+  before { request.env['HTTP_REFERER'] = "from_whence_I_came" }
 
   describe "GET index" do
+    before { set_current_user }
+
     let(:q1) { Fabricate(:queue_item, user: current_user, position: 1) }
     let(:q2) { Fabricate(:queue_item, user: current_user, position: 2) }
-    
+
     it "sets @queue_items to those that belong to current user" do
       get :index
       expect(assigns(:queue_items)).to match_array([q1, q2])
     end
 
-    it_behaves_like "no_current_user_redirect" do      
+    it_behaves_like "no_current_user_redirect" do
+      let(:action) { get :index }
+    end
+
+    it_behaves_like "no valid subscription redirect" do
       let(:action) { get :index }
     end
   end
 
   describe "POST create" do
+    before { set_current_user }
+
     let(:video) { Fabricate(:video) }
 
     context "when the video is not yet in the user's queue" do
-        
+
       it "creates an instance of QueueItem" do
         post :create, video_id: video.id
         expect(QueueItem.count).to eq(1)
@@ -58,7 +63,7 @@ describe QueueItemsController do
     end
 
     context "when the video is already in the user's queue" do
-      before do 
+      before do
         Fabricate(:queue_item, position: 1, user: current_user, video: video)
         post :create, video_id: video.id
       end
@@ -75,9 +80,15 @@ describe QueueItemsController do
     it_behaves_like "no_current_user_redirect" do
       let(:action) { post :create, video_id: video.id }
     end
+
+    it_behaves_like "no valid subscription redirect" do
+      let(:action) { post :create, video_id: video.id }
+    end
   end
 
   describe "DELETE destroy" do
+    before { set_current_user }
+
     context "when current user owns the queue item" do
       let!(:q1) { Fabricate(:queue_item, position: 1, user: current_user) }
       let!(:q2) { Fabricate(:queue_item, position: 2, user: current_user) }
@@ -106,7 +117,7 @@ describe QueueItemsController do
       let!(:q1) { Fabricate(:queue_item) }
       let!(:q2) { Fabricate(:queue_item, position: 1, user: current_user) }
       let!(:q3) { Fabricate(:queue_item, position: 2, user: current_user) }
-    
+
       before { delete :destroy, id: q1.id }
 
       it "deletes a queue item only if the current user owns it" do
@@ -123,15 +134,31 @@ describe QueueItemsController do
       let(:q2) { Fabricate(:queue_item) }
       let(:action) { delete :destroy, id: q2.id }
     end
+
+    it_behaves_like "no valid subscription redirect" do
+      let(:q2) { Fabricate(:queue_item) }
+      let(:action) { delete :destroy, id: q2.id }
+    end
   end
 
   describe "POST update" do
-    context "when position changes pass validations" do
+    before { set_current_user }
 
+    it_behaves_like "no_current_user_redirect" do
+      let(:qi_1) { Fabricate(:queue_item)}
+      let(:action) { post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } } }
+    end
+
+    it_behaves_like "no valid subscription redirect" do
+      let(:qi_1) { Fabricate(:queue_item)}
+      let(:action) { post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } } }
+    end
+
+    context "when position changes pass validations" do
       context "when the user does not own one of the queue items." do
         let(:qi_1) { Fabricate(:queue_item, position: 1) }
 
-        before { post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } } }                                      
+        before { post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } } }
 
         it "should not change that item" do
           expect(qi_1.reload.position).to eq(1)
@@ -146,9 +173,9 @@ describe QueueItemsController do
         let(:qi_1) { Fabricate(:queue_item, position: 1, user: current_user) }
         let(:qi_2) { Fabricate(:queue_item, position: 2, user: current_user) }
 
-        before do 
-          post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 }, 
-                                       "#{qi_2.id}" => { position: 1, user_rating: 2 } 
+        before do
+          post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 },
+                                       "#{qi_2.id}" => { position: 1, user_rating: 2 }
                                       }
         end
 
@@ -171,14 +198,14 @@ describe QueueItemsController do
         let(:qi_2) { Fabricate(:queue_item, position: 2, user: current_user) }
         let(:qi_3) { Fabricate(:queue_item, position: 3, user: current_user) }
 
-        before do   
-          post :update, queue_items: { "#{qi_1.id}" => { position: 6, user_rating: 2 }, 
+        before do
+          post :update, queue_items: { "#{qi_1.id}" => { position: 6, user_rating: 2 },
                                        "#{qi_2.id}" => { position: 3, user_rating: 2 },
                                        "#{qi_3.id}" => { position: 2, user_rating: 2 }
                                      }
         end
 
-        it "normalizes position numbers" do                              
+        it "normalizes position numbers" do
           expect(qi_1.reload.position).to eq(3)
           expect(qi_2.reload.position).to eq(2)
         end
@@ -196,9 +223,9 @@ describe QueueItemsController do
         let(:qi_1) { Fabricate(:queue_item, position: 1, user: current_user) }
         let(:qi_2) { Fabricate(:queue_item, position: 2, user: current_user) }
 
-        before do 
-          post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
-                                       "#{qi_2.id}" => { position: 1, user_rating: 2 } 
+        before do
+          post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 },
+                                       "#{qi_2.id}" => { position: 1, user_rating: 2 }
                                       }
         end
 
@@ -217,13 +244,13 @@ describe QueueItemsController do
       end
     end
 
-    context "when position change validations fail" do 
+    context "when position change validations fail" do
       let(:qi_1) { Fabricate(:queue_item, position: 1, user: current_user) }
       let(:qi_2) { Fabricate(:queue_item, position: 2, user: current_user) }
 
       before do
-        post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 }, 
-                                     "#{qi_2.id}" => { position: 1.5, user_rating: 2 } 
+        post :update, queue_items: { "#{qi_1.id}" => { position: 1, user_rating: 2 },
+                                     "#{qi_2.id}" => { position: 1.5, user_rating: 2 }
                                     }
       end
 
@@ -240,7 +267,7 @@ describe QueueItemsController do
         expect(response).to redirect_to queue_path
       end
     end
-  
+
     context "when video rating changes pass vailidations" do
       let(:video1) { Fabricate(:video) }
       let(:video2) { Fabricate(:video) }
@@ -292,43 +319,70 @@ describe QueueItemsController do
         expect(response).to redirect_to queue_path
       end
     end
-
-    it_behaves_like "no_current_user_redirect" do
-      let(:qi_1) { Fabricate(:queue_item)}
-      let(:action) { post :update, queue_items: { "#{qi_1.id}" => { position: 2, user_rating: 2 } } }
-    end
   end
 
   describe "POST top" do
-    let!(:qi_1) { Fabricate(:queue_item, position: 1, user: current_user) }
-    let!(:qi_2) { Fabricate(:queue_item, position: 2, user: current_user) }
-    let!(:qi_3) { Fabricate(:queue_item, position: 3, user: current_user) }
-
-    before { post :top, id: qi_2.id }
-
-    it "sets the position of the item to 1" do
-      expect(qi_2.reload.position).to eq(1)
-    end
-
-    it "adds one to the relevant item positions" do
-      expect(qi_1.reload.position).to eq(2)
-    end
-
-    it "leaves alone the relevant item positions" do
-      expect(qi_3.reload.position).to eq(3)
-    end
-
-    it "sets an info message" do
-      expect(flash[:info]).to be_present
-    end
-
-    it "redirects to the queue_path" do
-      expect(response).to redirect_to queue_path
-    end
-    
     it_behaves_like "no_current_user_redirect" do
-      let(:qi_2) { Fabricate(:queue_item) }
-      let(:action) { post :top, id: qi_2.id }
+      let(:action) { post :top, id: '21' }
+    end
+
+    it_behaves_like "no valid subscription redirect" do
+      let(:action) { post :top, id: '21' }
+    end
+
+    context "when current user owns the queue_item" do
+      let(:albert) { Fabricate(:user) }
+      let!(:qi_1) { Fabricate(:queue_item, position: 1, user: albert) }
+      let!(:qi_2) { Fabricate(:queue_item, position: 2, user: albert) }
+      let!(:qi_3) { Fabricate(:queue_item, position: 3, user: albert) }
+
+      before do
+        set_current_user(albert)
+        post :top, id: qi_2.id
+      end
+
+      it "sets the position of the item to 1" do
+        expect(qi_2.reload.position).to eq(1)
+      end
+
+      it "adds one to the relevant item positions" do
+        expect(qi_1.reload.position).to eq(2)
+      end
+
+      it "leaves alone the relevant item positions" do
+        expect(qi_3.reload.position).to eq(3)
+      end
+
+      it "sets an info message" do
+        expect(flash[:info]).to be_present
+      end
+
+      it "redirects to the queue_path" do
+        expect(response).to redirect_to queue_path
+      end
+    end
+  end
+
+  context "when current user does not own the queue item" do
+    let(:albert) { Fabricate(:user) }
+    let!(:qi_1) { Fabricate(:queue_item, position: 1, user: albert) }
+    let!(:qi_2) { Fabricate(:queue_item, position: 2) }
+
+    before do
+      set_current_user(albert)
+      post :top, id: qi_2.id
+    end
+
+    it "does not alter the position of the queue item" do
+      expect(qi_2.reload.position).to eq(2)
+    end
+
+    it "flashes a danger message" do
+      expect(flash[:danger]).to be_present
+    end
+
+    it "redirects to queue_path" do
+      expect(response).to redirect_to queue_path
     end
   end
 end

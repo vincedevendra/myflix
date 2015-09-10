@@ -30,3 +30,35 @@ shared_examples "no admin redirect" do
     expect(flash[:danger]).to be_present
   end
 end
+
+shared_examples "no valid subscription redirect" do
+  let(:alice) { Fabricate(:user) }
+
+  before do
+    alice.update_attribute(:valid_subscription, false)
+    set_current_user(alice)
+    action
+  end
+
+  it "flashes a danger message" do
+    expect(flash[:danger]).to be_present
+  end
+
+  it "redirects to the account_details_path" do
+    expect(response).to redirect_to account_details_path
+  end
+end
+
+shared_examples "delinquent flashes message" do
+  let(:alice) { Fabricate(:user) }
+
+  before do
+    alice.update_attribute(:delinquent, true)
+    set_current_user(alice)
+    action
+  end
+
+  it "sets a flash warning message" do
+    expect(flash[:warning]).to be_present
+  end
+end

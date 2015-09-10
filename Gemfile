@@ -20,11 +20,12 @@ gem 'carrierwave'
 gem 'carrierwave-aws'
 gem 'mini_magick'
 gem 'stripe'
+gem 'stripe_event'
 gem 'draper'
 
 group :development do
   gem 'thin'
-  gem "better_errors"
+  #gem "better_errors"
   gem 'letter_opener'
   gem "binding_of_caller"
 end

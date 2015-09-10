@@ -35,7 +35,8 @@ Myflix::Application.routes.draw do
     end
   end
 
-  resources :users, only: [:create, :show]
+  resources :users, only: [:create, :show, :update]
+  get '/account_details', to: 'users#edit'
   resources :sessions, only: :create
 
   resources :invites, only: [:new, :create]
@@ -43,5 +44,10 @@ Myflix::Application.routes.draw do
 
   namespace :admin do
     resources :videos, only: [:new, :create]
+    resources :payments, only: :index
   end
+
+  mount StripeEvent::Engine, at: '/stripe_events'
+
+  resources :cards, only: [:new, :create, :edit, :update]
 end

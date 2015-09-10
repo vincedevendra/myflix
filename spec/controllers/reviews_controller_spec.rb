@@ -10,7 +10,7 @@ describe ReviewsController do
     end
 
     context "when review passes validations" do
-      before do          
+      before do
         post :create, review: Fabricate.attributes_for(:review), video_id: alpha.id
       end
 
@@ -29,7 +29,7 @@ describe ReviewsController do
       it "sets flash[:success] message" do
         expect(flash[:success]).to be_present
       end
-      
+
       it "redirects back to video_path" do
         expect(response).to redirect_to "from_whence_I_came"
       end
@@ -55,6 +55,10 @@ describe ReviewsController do
     end
 
     it_behaves_like "no_current_user_redirect" do
+      let(:action) { post :create, review: Fabricate.attributes_for(:review), video_id: alpha.id }
+    end
+
+    it_behaves_like "no valid subscription redirect" do
       let(:action) { post :create, review: Fabricate.attributes_for(:review), video_id: alpha.id }
     end
   end

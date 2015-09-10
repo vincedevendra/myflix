@@ -1,0 +1,19 @@
+%section.account.container
+  .row
+    .col-md-6
+      = bootstrap_form_for(@user, layout: :horizontal, label_col: 'col-sm-2', control_col: 'col-sm-6') do |f|
+        %header
+          %h1 Your Account Information
+        = render 'email_and_password_fields', f: f
+        = f.submit "Update Account Information"
+        = link_to "Cancel"
+    .col-md-6
+      %header
+        %h1 Your Billing Information
+      %dl
+        %dt Card Number
+        %dd= display_last_4(@card)
+        %br/
+        %dt Expiration Date
+        %dd= display_expiration_date(@card)
+      = link_to "Update Payment Method", new_card_path, class: 'btn btn-default'

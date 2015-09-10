@@ -1,7 +1,7 @@
 %section#top-header.row
   %h1.col-md-2
     = link_to "MyFLiX", root_path
-  - if logged_in?   
+  - if logged_in?
     %ul.col-md-4.clearfix
       %li= link_to "Videos", root_path
       %li= link_to "My Queue", queue_path
@@ -18,7 +18,6 @@
             %b.caret
           %ul.dropdown-menu(role="menu" aria-labelledby="dlabel")
             %li
-              %a(href="#") Account
-              %a(href="#") Plan and Billing
+              = link_to "Account Details", account_details_path
               = link_to "Invite a Friend", new_invite_path
               = link_to "Sign Out", sign_out_path

@@ -49,3 +49,21 @@ def generate_stripe_token
     },
   ).id
 end
+
+def generate_valid_stripe_token
+  Stripe::Token.create(
+    :card => {
+      :number => '4242424242424242',
+      :exp_month => 8,
+      :exp_year => 2016,
+      :cvc => "314"
+    },
+  ).id
+end
+
+def generate_stripe_customer_id
+  Stripe::Customer.create(
+    email: "Foo@bar.com",
+    source: generate_valid_stripe_token
+    ).id
+end
