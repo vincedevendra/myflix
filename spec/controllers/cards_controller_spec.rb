@@ -42,7 +42,7 @@ describe CardsController do
         expect(flash[:danger]).to include('declined')
       end
 
-      it "redirects to the account_details_path" do
+      it "redirects to the new_card_path" do
         expect(response).to redirect_to new_card_path
       end
     end
