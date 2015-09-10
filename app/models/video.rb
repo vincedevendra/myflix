@@ -1,4 +1,7 @@
 class Video < ActiveRecord::Base
+  include Elasticsearch::Model
+  include Elasticsearch::Model::Callbacks
+
   belongs_to :category
   has_many :reviews, -> { order('created_at DESC') }
   has_many :queue_videos
@@ -23,5 +26,23 @@ class Video < ActiveRecord::Base
 
   def user_queue_item(user)
     QueueItem.find_by(user: user, video: self)
+  end
+
+  def as_indexed_json(options={})
+    as_json(only: ['title', 'description'])
+  end
+
+  def self.search(query)
+    __elasticsearch__.search (
+      {
+        query: {
+          multi_match: {
+            query: query,
+            operator: 'and',
+            fields: ['title', 'description']
+          }
+        }
+      }
+    )
   end
 end
