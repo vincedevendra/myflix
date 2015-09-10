@@ -6,6 +6,8 @@ feature "user reactives account", vcr: true, js: true, driver: :selenium do
     Fabricate(:video, category: category)
   end
 
+  after { ActionMailer::Base.deliveries.clear }
+
   let(:alice) { Fabricate(:user, stripe_customer_id:
   'cus_6wNhR9Yrp5ITdP') }
 
