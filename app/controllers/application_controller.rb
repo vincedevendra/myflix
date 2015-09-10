@@ -17,7 +17,6 @@ class ApplicationController < ActionController::Base
 
   def require_user
     unless logged_in?
-      flash[:danger] = "Please sign in or register."
       redirect_to welcome_path
     end
   end
