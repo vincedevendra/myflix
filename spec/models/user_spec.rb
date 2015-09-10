@@ -6,6 +6,18 @@ describe User do
   it { should have_many(:followings).order(created_at: :desc) }
   it { should have_many(:followees).through(:followings) }
 
+  describe "#create" do
+    let!(:user) { Fabricate(:user) }
+
+    it "sets delinquent to false on creation" do
+      expect(user).not_to be_delinquent
+    end
+
+    it "sets valid_subscription to true on creation" do
+      expect(user).to be_valid_subscription
+    end
+  end
+
   describe "#has_video_in_queue?" do
     let(:pete) { Fabricate(:user) }
     let(:video) { Fabricate(:video) }
@@ -15,7 +27,7 @@ describe User do
       Fabricate(:queue_item, user: pete, video: video)
       expect(subject).to eq(true)
     end
-      
+
     it "returns false if the video is not in the current user's queue" do
       expect(subject).to eq(false)
     end
@@ -25,7 +37,7 @@ describe User do
     let(:pete) { Fabricate(:user) }
     let(:video) { Fabricate(:video) }
     subject { pete.video_queue_item(video) }
-       
+
     it "returns the queue_item associated with user and video if it exists" do
       queue_item = Fabricate(:queue_item, user: pete, video: video)
       expect(subject).to eq(queue_item)

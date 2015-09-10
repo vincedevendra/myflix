@@ -1,36 +1,65 @@
-module StripeWrapper
-  class Charge
-    attr_reader :status, :response
+class StripeWrapper
+  attr_reader :status, :response
+  delegate :id, to: :@response
+  delegate :message, to: :@response, prefix: :error
 
-    def initialize(response, status)
-      @response = response
-      @status = status
-    end
+  def initialize(response, status)
+    @response = response
+    @status = status
+  end
 
+  def successful?
+    status == :success
+  end
+
+  def self.set_api_key
+    Stripe.api_key = ENV.fetch('STRIPE_API_KEY')
+  end
+
+  class Customer < StripeWrapper
     def self.create(options={})
       begin
-        response = Stripe::Charge.create(
-          :amount => options[:amount],
-          :currency => options[:currency] ||= "usd",
+        customer = Stripe::Customer.create(
           :source => options[:token],
-          :description => options[:description]
+          :plan => "myflix_monthly",
+          :email => options[:email]
         )
-        new(response, :success)
+        new(customer, :success)
       rescue Stripe::CardError => e
         new(e, :error)
       end
     end
 
-    def successful?
-      status == :success
-    end
-
-    def error_message
-      response.message
+    def self.retrieve(user)
+      Stripe::Customer.retrieve(user.stripe_customer_id)
     end
   end
 
-  def self.set_api_key
-    Stripe.api_key = ENV.fetch('STRIPE_API_KEY')
+  class Card < StripeWrapper
+    def self.default(user)
+      if user.stripe_customer_id
+        customer = StripeWrapper::Customer.retrieve(user)
+        default_card_id = customer.default_source
+        customer.sources.retrieve(default_card_id)
+      end
+    end
+
+    def self.update_current_card(options={})
+    end
+
+    def self.create(options={})
+      customer = StripeWrapper::Customer.retrieve(options[:user])
+      old_card_id = customer.default_source
+      begin
+        card = customer.sources.create({:source => options[:token]})
+        card.save
+        customer.default_source = card.id
+        customer.save
+        customer.sources.retrieve(old_card_id).delete
+        new(card, :success)
+      rescue Stripe::CardError => e
+        new(e, :error)
+      end
+    end
   end
 end

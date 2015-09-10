@@ -17,6 +17,11 @@ describe FollowingsController do
     it_behaves_like "no_current_user_redirect" do
       let(:action) { get :index }
     end
+
+    it_behaves_like "no valid subscription redirect" do
+      let(:action) { get :index }
+      let(:redirect_or_render) { render_template 'index' }
+    end
   end
 
   describe "DELETE destroy" do
@@ -25,7 +30,7 @@ describe FollowingsController do
     let!(:following) { Fabricate(:following, user: alice, followee: billy) }
 
     context "when the current user is the one following" do
-      before do 
+      before do
         set_current_user(alice)
         delete :destroy, id: following.id
       end
@@ -59,6 +64,11 @@ describe FollowingsController do
     it_behaves_like "no_current_user_redirect" do
       let(:action) { delete :destroy, id: following.id }
     end
+
+    it_behaves_like "no valid subscription redirect" do
+      let(:action) { delete :destroy, id: following.id }
+      let(:redirect_or_render) { redirect_to "from_whence_I_came" }
+    end
   end
 
   describe "POST create" do
@@ -70,7 +80,7 @@ describe FollowingsController do
         set_current_user(albert)
         post :create, followee_id: bertha.id
       end
-      
+
       it "creates a new following" do
         expect(Following.count).to eq(1)
       end
@@ -85,6 +95,10 @@ describe FollowingsController do
 
       it "sets an success message" do
         expect(flash[:success]).to be_present
+      end
+
+      it "redirects back" do
+        expect(response).to redirect_to "from_whence_I_came"
       end
     end
 
@@ -107,6 +121,16 @@ describe FollowingsController do
 
     it_behaves_like "no_current_user_redirect" do
       let(:action) { post :create, followee_id: 2 }
+    end
+
+    it_behaves_like "no valid subscription redirect" do
+      before do
+        albert = Fabricate(:user)
+        bertha = Fabricate(:user)
+        Fabricate(:following, user: albert, followee: bertha)
+      end
+      let(:action) { post :create, followee_id: bertha.id }
+      let(:redirect_or_render) { redirect_to "from_whence_I_came" }
     end
   end
 end

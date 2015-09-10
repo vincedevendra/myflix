@@ -7,6 +7,14 @@ describe InvitesController do
       get :new
       expect(assigns(:invite)).to be_a_new(Invite)
     end
+
+    it_behaves_like "no_current_user_redirect" do
+      let(:action) { get :new }
+    end
+
+    it_behaves_like "no valid subscription redirect" do
+      let(:action) { get :new }
+    end
   end
 
   describe "POST create" do
@@ -74,6 +82,10 @@ describe InvitesController do
     end
 
     it_behaves_like "no_current_user_redirect" do
+      let(:action) { post :create, invite: Fabricate.attributes_for(:invite) }
+    end
+
+    it_behaves_like "no valid subscription redirect" do
       let(:action) { post :create, invite: Fabricate.attributes_for(:invite) }
     end
   end

@@ -1,0 +1,11 @@
+= render 'users/stripe_scripts'
+%section.account.container
+  .row
+    .col-sm-10.col-sm-offset-1
+      = bootstrap_form_tag(url: cards_path, html: { id: 'payment-form' }, layout: :horizontal, label_col: 'col-sm-2', control_col: 'col-sm-6') do |f|
+        %header
+          %h1 Update Payment Method
+        = render 'users/credit_card_fields', f: f
+        %fieldset.actions.control-group.col-sm-offset-2
+          .controls
+            = f.submit "Submit"
