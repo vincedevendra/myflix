@@ -1,0 +1,18 @@
+%section.advanced_search.container
+  = bootstrap_form_tag url: advanced_search_videos_path, method: :get, layout: :horizontal do |f|
+    %header
+      %h1 Advanced Search
+    = f.search_field :query, control_col: 'col-sm-6', hide_label: true, placeholder: "Search videos by title or description"
+    = f.submit "Search"
+  %hr
+  %h2.results_count Results: #{pluralize(@videos.count, 'video')} found
+  - @videos.each do |video|
+    %article.video.row
+      .video_data
+        %figure.col-sm-2
+          =image_tag(video.small_cover_url)
+          .video_body.col-sm-10
+            %header
+              %h3= video.title
+              %em.label.label-highlight= video.title
+            %p.video_description= video.description

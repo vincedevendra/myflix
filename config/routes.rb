@@ -24,6 +24,8 @@ Myflix::Application.routes.draw do
   resources :videos, only: [:index, :show] do
     collection do
       get 'search'
+      get 'advanced_search'
+      get 'advanced_query'
     end
     resources :reviews, only: :create
     resources :queue_items, only: :create

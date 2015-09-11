@@ -10,6 +10,7 @@
       .form-group
         = text_field_tag :query, nil, class: 'form-control', placeholder: "Search for videos here"
         = submit_tag "Search", class: 'btn btn-default'
+    = link_to "Advanced Search", advanced_search_videos_path, class: 'small'
     #user_links.pull-right
       %ul
         %li.dropdown
