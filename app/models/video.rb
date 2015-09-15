@@ -41,12 +41,10 @@ class Video < ActiveRecord::Base
   def self.search(query, options={})
     search_definition = {
       query: {
-        query: {
-          multi_match: {
-            query: query,
-            operator: 'and',
-            fields: ['title^100', 'description^50']
-          }
+        multi_match: {
+          query: query,
+          operator: 'and',
+          fields: ['title^100', 'description^50']
         }
       }
     }
@@ -60,8 +58,8 @@ class Video < ActiveRecord::Base
         search_definition[:filter] = {
           range: {
             average_rating: {
-              gte: options[:rating_from] if options[:rating_from].present?,
-              lte: options[:rating_to] if options[:rating_to].present?
+              gte: (options[:rating_from] if options[:rating_from].present?),
+              lte: (options[:rating_to] if options[:rating_to].present?)
             }
           }
         }

@@ -13,7 +13,7 @@ feature "User interacts with advanced search", :elasticsearch do
      Fabricate(:review, video: star_trek,  rating: 4)
      Fabricate(:review, video: star_trek,  rating: 5)
      refresh_index
-     sign_in
+     sign_in_user
 
      click_on "Advanced Search"
    end
