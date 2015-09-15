@@ -58,6 +58,6 @@
 
 
 ## See it in the Wild!
-Deployed at vince-tl-myflix.herokuapp.com
+Deployed on [Heroku](http://vince-tl-myflix.herokuapp.com)
 
 <small>NB: Front end supplied by the Tealeaf team.</small>
