@@ -1,4 +1,7 @@
 class Video < ActiveRecord::Base
+  include Elasticsearch::Model
+  include Elasticsearch::Model::Callbacks
+
   belongs_to :category
   has_many :reviews, -> { order('created_at DESC') }
   has_many :queue_videos
@@ -14,7 +17,7 @@ class Video < ActiveRecord::Base
   end
 
   def average_rating
-    (reviews.select('rating').map{ |r| r.rating.to_f }.inject('+') / reviews.count).round(1)
+    reviews.average(:rating).round(1) if reviews.any?
   end
 
   def belongs_to_user_queue?(user)
@@ -23,5 +26,44 @@ class Video < ActiveRecord::Base
 
   def user_queue_item(user)
     QueueItem.find_by(user: user, video: self)
+  end
+
+  def as_indexed_json(options={})
+    as_json(
+      only: ['title', 'description'],
+      methods: [:average_rating],
+      include: { reviews: {
+        only: [:body] } } )
+  end
+
+  def self.search(query, options={})
+    search_definition = {
+      query: {
+        multi_match: {
+          query: query,
+          operator: 'and',
+          fields: ['title^100', 'description^50']
+        }
+      }
+    }
+
+    if query.present?
+      if options[:reviews].present?
+        search_definition[:query][:multi_match][:fields] << 'reviews.body'
+      end
+
+      if options[:rating_from].present? || options[:rating_to].present?
+        search_definition[:filter] = {
+          range: {
+            average_rating: {
+              gte: (options[:rating_from] if options[:rating_from].present?),
+              lte: (options[:rating_to] if options[:rating_to].present?)
+            }
+          }
+        }
+      end
+    end
+
+    __elasticsearch__.search(search_definition)
   end
 end

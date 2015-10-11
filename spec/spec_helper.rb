@@ -31,6 +31,9 @@ RSpec.configure do |config|
   config.order = "random"
   config.infer_spec_type_from_file_location!
   config.treat_symbols_as_metadata_keys_with_true_values = true
+  config.before(:each, elasticsearch: true) do
+    Video.__elasticsearch__.create_index! force: true
+  end
 
   config.before(:suite) do
     DatabaseCleaner.clean_with(:truncation)

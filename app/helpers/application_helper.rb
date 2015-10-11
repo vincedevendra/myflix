@@ -41,4 +41,9 @@ module ApplicationHelper
   def name_value
     @invite_name ? @invite_name : @user.full_name
   end
+
+  def result_count(query, videos)
+    count = query.blank? ? 0 : videos.count
+    "Results: #{pluralize(count, 'video')} found"
+  end
 end
