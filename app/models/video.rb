@@ -17,9 +17,7 @@ class Video < ActiveRecord::Base
   end
 
   def average_rating
-    if reviews.any?
-      (reviews.select('rating').map{ |r| r.rating.to_f }.inject('+') / reviews.count).round(1)
-    end
+    reviews.average(:rating).round(1) if reviews.any?
   end
 
   def belongs_to_user_queue?(user)

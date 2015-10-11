@@ -43,7 +43,7 @@ module ApplicationHelper
   end
 
   def result_count(query, videos)
-    query.blank? ? count = 0 : count = videos.count
+    count = query.blank? ? 0 : videos.count
     "Results: #{pluralize(count, 'video')} found"
   end
 end
